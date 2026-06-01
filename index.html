@@ -118,9 +118,9 @@ footer{border-top:1px solid var(--br);padding:28px 24px;text-align:center;font-s
 <!-- ═══ MATRIX AS VERB ═══ -->
 <section id="matrix-verb">
 <h2>A matrix is a verb</h2>
-<p>A vector like $(3,\,2)$ is a recipe: go 3 steps along the horizontal reference arrow $\hat\imath = (1,0)$, then 2 steps along the vertical $\hat\jmath = (0,1)$. Coordinates are always a recipe written in terms of some reference pair — and nothing more.</p>
+<p>A vector like $(3,\,2)$ is an instruction: go 3 steps along the horizontal reference arrow $\hat\imath = (1,0)$, then 2 steps along the vertical $\hat\jmath = (0,1)$. Coordinates are always an instruction written in terms of some reference pair.</p>
 <p>A $2\times 2$ matrix is a <em>relocation notice</em> for those two reference arrows. Its first column is the new home of $\hat\imath$; its second column is the new home of $\hat\jmath$. For the matrix $A = \begin{pmatrix}2&1\\1&2\end{pmatrix}$, the first column $(2,1)$ tells you where $\hat\imath$ lands, and the second column $(1,2)$ tells you where $\hat\jmath$ lands.</p>
-<p>Because the move keeps grid lines straight and evenly spaced — that's what linearity means — every other vector is carried along automatically. The vector that used to mean "3 steps along $\hat\imath$ and 2 steps along $\hat\jmath$" now means "3 steps along the <em>new</em> $\hat\imath$ and 2 steps along the <em>new</em> $\hat\jmath$":</p>
+<p>Because the move keeps grid lines straight and evenly spaced, and since that's what linearity means, every other vector is carried along automatically. The vector that used to mean "3 steps along $\hat\imath$ and 2 steps along $\hat\jmath$" now means "3 steps along the <em>new</em> $\hat\imath$ and 2 steps along the <em>new</em> $\hat\jmath$":</p>
 $$A\mathbf{v} = x\cdot\text{(new }\hat\imath) + y\cdot\text{(new }\hat\jmath)$$
 <p>The widget below makes this tangible. The faint grid shows the whole plane being warped. Edit the matrix or choose a preset, then drag the blue arrow.</p>
 
