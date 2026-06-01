@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>The Atlas of Eigen-Knowledge · A Dependency Map</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}],throwOnError:false});"></script>
+<style>
+:root{
+  --bg:#fbfaf7; --sf:#ffffff; --sf2:#f1efe8; --sf3:#e7e4db;
+  --tx:#23222a; --tx2:#5d5c58; --tx3:#8a8980;
+  --br:rgba(0,0,0,.11); --br2:rgba(0,0,0,.20);
+  --a1:#185fa5; --a2:#d05530; --a3:#1d9e75; --a4:#7a6fe0; --a5:#bc8118; --a6:#0f8f96;
+  --maxw:820px; --rad:14px;
+  --disp:"Fraunces",Georgia,"Times New Roman",serif;
+  --body:-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+}
+@media(prefers-color-scheme:dark){
+  :root{
+    --bg:#16151b; --sf:#201f27; --sf2:#28272f; --sf3:#33323c;
+    --tx:#ece9e1; --tx2:#b1afa6; --tx3:#8a8893;
+    --br:rgba(255,255,255,.12); --br2:rgba(255,255,255,.24);
+    --a1:#82b6ec; --a2:#ef9168; --a3:#5dcaa5; --a4:#b1a7f4; --a5:#e7b65a; --a6:#5fd0d6;
+  }
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--tx);font-family:var(--body);font-size:17px;line-height:1.75;-webkit-font-smoothing:antialiased}
+a{color:var(--a1);text-decoration:none}
+a:hover{text-decoration:underline}
+
+/* nav */
+nav{position:sticky;top:0;z-index:200;background:color-mix(in srgb,var(--sf) 88%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--br);padding:11px 26px}
+.nav-r{max-width:1180px;margin:0 auto;display:flex;gap:20px;flex-wrap:wrap;align-items:center;font-size:13px}
+.nav-r .brand{font-family:var(--disp);font-weight:600;font-size:16px;color:var(--tx);margin-right:6px;letter-spacing:.01em}
+.nav-r a{color:var(--tx3)}
+.nav-r a:hover{color:var(--a1);text-decoration:none}
+.nav-r .sp{flex:1}
+
+/* layout */
+main{max-width:var(--maxw);margin:0 auto;padding:0 26px 110px}
+.wide{max-width:1180px;margin-left:auto;margin-right:auto;padding:0 26px}
+section{padding-top:78px}
+h1{font-family:var(--disp);font-weight:600;font-size:clamp(2.2rem,5vw,3.5rem);line-height:1.04;letter-spacing:-.015em;margin-bottom:22px}
+h2{font-family:var(--disp);font-weight:600;font-size:clamp(1.5rem,3vw,2rem);line-height:1.12;margin-bottom:18px;letter-spacing:-.01em}
+h3{font-family:var(--disp);font-weight:600;font-size:1.2rem;margin:0 0 8px}
+p{margin-bottom:20px}
+.lede{font-size:1.18rem;color:var(--tx2);margin-bottom:30px;line-height:1.62}
+.kicker{font-family:var(--body);text-transform:uppercase;letter-spacing:.18em;font-size:12px;font-weight:600;color:var(--a2);margin-bottom:18px}
+em{font-style:italic}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
+
+/* ── ATLAS (graph) ── */
+.atlas-shell{position:relative;border-radius:20px;overflow:hidden;border:1px solid rgba(255,255,255,.07);
+  background:radial-gradient(120% 90% at 50% 12%,#1a2233 0%,#11161f 48%,#0b0e15 100%);
+  box-shadow:0 22px 70px -30px rgba(0,0,0,.6);margin-top:8px}
+.atlas-top{display:flex;flex-wrap:wrap;gap:10px;align-items:center;padding:16px 20px 4px;position:relative;z-index:5}
+.atlas-top .htitle{font-family:var(--disp);font-size:15px;color:#dfe5f0;font-weight:600;margin-right:auto}
+.abtn{font-family:var(--body);font-size:12.5px;padding:6px 13px;border-radius:999px;border:1px solid rgba(255,255,255,.18);
+  background:rgba(255,255,255,.04);color:#cfd6e4;cursor:pointer;transition:all .16s}
+.abtn:hover{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.32)}
+.abtn.eig{border-color:rgba(239,138,94,.5);color:#f3a883}
+.abtn.eig:hover{background:rgba(239,138,94,.16)}
+.abtn.pca{border-color:rgba(95,208,214,.5);color:#7fdce0}
+.abtn.pca:hover{background:rgba(95,208,214,.16)}
+.atlas-scroll{overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch}
+#atlasSvg{display:block;width:100%;min-width:760px;height:auto;cursor:default;user-select:none}
+.atlas-cap{min-height:30px;padding:6px 22px 16px;font-size:13px;color:#aab4c8;position:relative;z-index:5;line-height:1.5}
+.atlas-cap b{color:#eef2f8}
+.legend{display:flex;flex-wrap:wrap;gap:14px;padding:0 22px 18px;position:relative;z-index:5}
+.legend span{display:flex;align-items:center;gap:6px;font-size:12px;color:#9aa4ba}
+.legend i{width:10px;height:10px;border-radius:50%;display:inline-block;box-shadow:0 0 8px currentColor}
+
+/* node SVG element styling */
+.gn{cursor:pointer}
+.gn-label{font-family:var(--body);font-weight:500;fill:#dfe6f2;paint-order:stroke;pointer-events:none}
+.gn-sub{font-family:var(--body);fill:#93a0b8;pointer-events:none}
+.edge{transition:stroke .25s,stroke-width .25s,opacity .25s}
+.edge.flow{stroke-dasharray:5 7;animation:flow 1s linear infinite}
+@keyframes flow{to{stroke-dashoffset:-24}}
+.stratum-label{font-family:var(--disp);font-size:13px;fill:#566179;letter-spacing:.04em;opacity:.8}
+
+/* ── detail panel ── */
+.detail{position:fixed;right:0;top:0;height:100%;width:min(420px,92vw);background:var(--sf);
+  border-left:1px solid var(--br);box-shadow:-18px 0 50px -24px rgba(0,0,0,.45);
+  transform:translateX(102%);transition:transform .34s cubic-bezier(.4,.0,.1,1);z-index:300;
+  display:flex;flex-direction:column;overflow:hidden}
+.detail.open{transform:translateX(0)}
+.detail-hd{padding:22px 24px 14px;border-bottom:1px solid var(--br);position:relative}
+.detail-hd .dlayer{text-transform:uppercase;letter-spacing:.16em;font-size:11px;font-weight:600;margin-bottom:7px}
+.detail-hd h3{font-size:1.5rem;margin:0}
+.detail-hd .dtag{color:var(--tx2);font-size:13.5px;margin-top:5px}
+.detail-x{position:absolute;top:18px;right:18px;width:30px;height:30px;border-radius:50%;border:1px solid var(--br2);
+  background:transparent;color:var(--tx2);cursor:pointer;font-size:17px;line-height:1;display:grid;place-items:center}
+.detail-x:hover{background:var(--sf2)}
+.detail-bd{padding:20px 24px 30px;overflow-y:auto;flex:1}
+.detail-bd .vfig{background:var(--sf2);border:1px solid var(--br);border-radius:12px;padding:12px;margin:4px 0 18px;display:grid;place-items:center}
+.detail-bd .vfig svg{width:100%;height:auto;max-width:260px}
+.detail-bd .sec-t{font-family:var(--body);text-transform:uppercase;letter-spacing:.13em;font-size:11px;font-weight:600;color:var(--tx3);margin:18px 0 7px}
+.detail-bd p{font-size:14.5px;line-height:1.65;margin-bottom:12px;color:var(--tx)}
+.detail-bd .mathbox{background:var(--sf2);border-radius:10px;padding:14px 12px;text-align:center;overflow-x:auto;margin:4px 0 6px}
+.litcard{background:color-mix(in srgb,var(--a2) 9%,var(--sf2));border:1px solid color-mix(in srgb,var(--a2) 24%,transparent);
+  border-radius:10px;padding:12px 14px;font-size:13.5px;color:var(--tx2);line-height:1.55}
+.litcard .who{display:block;margin-top:7px;font-size:12px;color:var(--tx3)}
+.needs{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.needs .chip{font-size:12px;padding:3px 9px;border-radius:999px;background:var(--sf3);color:var(--tx2);cursor:pointer;border:1px solid var(--br)}
+.needs .chip:hover{background:var(--a1);color:#fff;border-color:transparent}
+.scrim{position:fixed;inset:0;background:rgba(0,0,0,.28);opacity:0;pointer-events:none;transition:opacity .3s;z-index:250}
+.scrim.show{opacity:1;pointer-events:auto}
+
+/* ── math ladder ── */
+.ladder{position:relative;margin-top:14px;padding-left:0}
+.rung{display:grid;grid-template-columns:54px 1fr 230px;gap:20px;align-items:center;padding:22px 0;border-top:1px solid var(--br);
+  opacity:0;transform:translateY(22px);transition:opacity .6s,transform .6s}
+.rung.in{opacity:1;transform:none}
+.rung:last-child{border-bottom:1px solid var(--br)}
+.rung .num{font-family:var(--disp);font-size:1.9rem;font-weight:600;color:var(--a2);line-height:1;opacity:.85}
+.rung .rname{font-family:var(--disp);font-size:1.18rem;font-weight:600;margin-bottom:3px}
+.rung .rint{font-size:14.5px;color:var(--tx2);line-height:1.55}
+.rung .rmath{background:var(--sf2);border:1px solid var(--br);border-radius:10px;padding:14px 10px;text-align:center;overflow-x:auto;font-size:.95em}
+.rung .rviz{margin-top:8px}
+.rung .rviz svg{width:100%;height:auto;max-width:210px;display:block}
+@media(max-width:680px){
+  .rung{grid-template-columns:40px 1fr;gap:14px}
+  .rung .rmath{grid-column:1/-1}
+  .rung .num{font-size:1.5rem}
+}
+
+/* ── reference cards ── */
+.refgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;margin-top:8px}
+.refcard{background:var(--sf);border:1px solid var(--br);border-radius:14px;padding:18px 20px;
+  opacity:0;transform:translateY(20px);transition:opacity .6s,transform .6s}
+.refcard.in{opacity:1;transform:none}
+.refcard:hover{border-color:var(--br2)}
+.refcard .rsrc{font-family:var(--body);font-size:11.5px;text-transform:uppercase;letter-spacing:.13em;color:var(--a2);font-weight:600;margin-bottom:8px}
+.refcard h3{font-size:1.08rem;margin-bottom:8px;line-height:1.25}
+.refcard p{font-size:14px;color:var(--tx2);line-height:1.55;margin-bottom:12px}
+.refcard a{font-size:13px;font-weight:500}
+
+.callout{background:var(--sf2);border:1px solid var(--br);border-left:3px solid var(--a2);border-radius:0 12px 12px 0;padding:16px 20px;margin:24px 0;font-size:15px;color:var(--tx2)}
+.callout b{color:var(--tx)}
+
+footer{border-top:1px solid var(--br);padding:34px 26px;text-align:center;font-size:13px;color:var(--tx3);max-width:1180px;margin:0 auto}
+footer a{color:var(--tx2)}
+</style>
+</head>
+<body>
+<nav aria-label="Site sections">
+  <div class="nav-r">
+    <span class="brand">Eigen · Atlas</span>
+    <a href="index.html">← The article</a>
+    <span class="sp"></span>
+    <a href="#atlas">Dependency map</a>
+    <a href="#ladder">Math ladder</a>
+    <a href="#lit">Literature</a>
+  </div>
+</nav>
+
+<main>
+<section id="top">
+  <div class="kicker">A map of what leads to what</div>
+  <h1>The Atlas of<br>Eigen-Knowledge</h1>
+  <p class="lede">Eigenvectors don't sit at the bottom of a textbook by accident. They rest on a tower of ideas — determinants on matrices, matrices on vectors, vectors on the humble scalar. This page draws that tower as a living dependency graph you can climb, and rebuilds the mathematics one rung at a time, from a single number to <em>Av = λv</em> and beyond.</p>
+  <p>It's a companion to <a href="index.html">the first-principles article</a>. There, the chain ran forward as prose and interactive figures. Here, you can grab any concept and instantly see <em>everything it secretly depends on</em> — and everything it goes on to unlock.</p>
+</section>
+
+<section id="atlas">
+  <h2>The dependency constellation</h2>
+  <p>Each star is a concept. A line means <em>"is needed for."</em> Hover or tap any star: its <span style="color:var(--a5);font-weight:600">prerequisites</span> light up below it (what you must already understand) and the things it <span style="color:var(--a6);font-weight:600">unlocks</span> light up above. Click a star to open its full intuition, mathematics, and a note from the literature.</p>
+</section>
+</main>
+
+<div class="wide">
+  <div class="atlas-shell">
+    <div class="atlas-top">
+      <span class="htitle">Linear algebra, as a tech tree</span>
+      <button class="abtn eig" id="btnEig">▲ Trace path to Eigenvector</button>
+      <button class="abtn pca" id="btnPca">▲ Trace path to PCA</button>
+      <button class="abtn" id="btnReset">Reset</button>
+    </div>
+    <div class="atlas-scroll">
+      <svg id="atlasSvg" viewBox="0 0 1060 880" role="img" aria-label="Interactive dependency graph of linear algebra concepts leading to eigenvectors and PCA. Foundations such as scalars and coordinates sit at the bottom; vectors, matrices, determinants, eigenvalues and eigenvectors build upward; power iteration, covariance and PCA sit at the apex.">
+        <title>Concept dependency constellation</title>
+        <desc>A layered graph. Bottom: scalar and coordinate. Above them: vector and basis. Then linear combination, span, linear independence. Then matrix, linear transformation, matrix-vector product, identity. Then determinant and singularity, with covariance to the side. Then characteristic equation, eigenvalue, eigenvector, eigenspace. At the apex: power iteration, and PCA. Edges run from each prerequisite up to what it enables.</desc>
+      </svg>
+    </div>
+    <div class="atlas-cap" id="atlasCap">Hover a star to trace its lineage. Click to open the concept.</div>
+    <div class="legend">
+      <span style="color:#e7b65a"><i></i>Foundations</span>
+      <span style="color:#82b6ec"><i></i>Vectors</span>
+      <span style="color:#5dcaa5"><i></i>Matrices &amp; maps</span>
+      <span style="color:#b1a7f4"><i></i>Determinant</span>
+      <span style="color:#ef9168"><i></i>Eigen-structure</span>
+      <span style="color:#5fd0d6"><i></i>Applications</span>
+    </div>
+  </div>
+</div>
+
+<main>
+<section id="ladder">
+  <h2>The same chain, as mathematics</h2>
+  <p>The constellation shows the <em>structure</em> of the dependencies. This ladder shows the <em>notation</em> accumulating — each rung introduces exactly one new symbol, and never one you haven't earned. Read it top to bottom and you watch a single number grow into the eigenvalue equation, then into a tool for finding the grain of real data.</p>
+  <div class="ladder" id="ladderEl"></div>
+  <div class="callout">Every rung here is a star up in the constellation, and most are an interactive figure over in <a href="index.html">the article</a>. Three views of one idea: the graph for <b>structure</b>, the ladder for <b>notation</b>, the article for <b>intuition you can drag</b>.</div>
+</section>
+
+<section id="lit">
+  <h2>How others have pictured it</h2>
+  <p>The intuitions on this site echo a lineage of explanations. These are the ones worth your time — each paraphrased here, each linked in full. They converge on the same image from different angles: the direction a transformation refuses to turn.</p>
+  <div class="refgrid" id="refGrid"></div>
+  <p style="margin-top:26px;font-size:14px;color:var(--tx3)">Paraphrased with attribution; follow each link for the original. Quotations, where used, are kept short and credited.</p>
+</section>
+</main>
+
+<div class="scrim" id="scrim"></div>
+<aside class="detail" id="detail" aria-live="polite">
+  <div class="detail-hd">
+    <button class="detail-x" id="detailX" aria-label="Close panel">✕</button>
+    <div class="dlayer" id="dLayer"></div>
+    <h3 id="dTitle"></h3>
+    <div class="dtag" id="dTag"></div>
+  </div>
+  <div class="detail-bd" id="dBody"></div>
+</aside>
+
+<footer>
+  An atlas for <a href="index.html">Eigenvectors from First Principles</a>. Built with vanilla JS, inline SVG, and KaTeX — no frameworks, works offline once cached.
+</footer>
+
+<script>
+/* ══════════════════════════════════════════════════════════════
+   DATA — nodes, edges, and per-concept detail
+══════════════════════════════════════════════════════════════ */
+const LAYER = {
+  foundation:{c:'#e7b65a', name:'Foundation'},
+  vector:    {c:'#82b6ec', name:'Vectors'},
+  matrix:    {c:'#5dcaa5', name:'Matrices & maps'},
+  det:       {c:'#b1a7f4', name:'Determinant'},
+  eigen:     {c:'#ef9168', name:'Eigen-structure'},
+  app:       {c:'#5fd0d6', name:'Applications'},
+};
+
+const NODES = [
+  {id:'scalar',  label:'Scalar',        sub:'a number',        layer:'foundation', x:360, y:815, r:29},
+  {id:'coord',   label:'Coordinate',    sub:'a position',      layer:'foundation', x:620, y:815, r:29},
+  {id:'vector',  label:'Vector',        sub:'list / arrow',    layer:'vector',     x:360, y:705, r:33},
+  {id:'basis',   label:'Basis î, ĵ',    sub:'reference arrows',layer:'vector',     x:640, y:705, r:29},
+  {id:'lincomb', label:'Linear combo',  sub:'scale & add',     layer:'vector',     x:250, y:600, r:29},
+  {id:'span',    label:'Span',          sub:'all reachable',   layer:'vector',     x:470, y:610, r:29},
+  {id:'linind',  label:'Independence',  sub:'no redundancy',   layer:'vector',     x:770, y:598, r:29},
+  {id:'matrix',  label:'Matrix',        sub:'columns = vectors',layer:'matrix',    x:180, y:495, r:33},
+  {id:'lintrans',label:'Transformation',sub:'a verb on space', layer:'matrix',     x:445, y:495, r:33},
+  {id:'matvec',  label:'A × v',         sub:'rebuild from basis',layer:'matrix',   x:665, y:500, r:29},
+  {id:'identity',label:'Identity I',    sub:'do nothing',      layer:'matrix',     x:900, y:505, r:29},
+  {id:'singular',label:'Singularity',   sub:'det = 0 collapse',layer:'det',        x:180, y:390, r:29},
+  {id:'det',     label:'Determinant',   sub:'area scale',      layer:'det',        x:470, y:385, r:33},
+  {id:'cov',     label:'Covariance C',  sub:'shape of a cloud',layer:'app',        x:885, y:375, r:29},
+  {id:'eigval',  label:'Eigenvalue λ',  sub:'the stretch',     layer:'eigen',      x:450, y:295, r:30},
+  {id:'chareq',  label:'Char. equation',sub:'det(A−λI)=0',     layer:'eigen',      x:660, y:290, r:29},
+  {id:'eigvec',  label:'Eigenvector',   sub:'direction kept',  layer:'eigen',      x:400, y:185, r:40},
+  {id:'eigspace',label:'Eigenspace',    sub:'a whole line',    layer:'eigen',      x:185, y:205, r:29},
+  {id:'power',   label:'Power iteration',sub:'apply, repeat',  layer:'app',        x:665, y:178, r:29},
+  {id:'pca',     label:'PCA',           sub:'rank the axes',   layer:'app',        x:520, y:72, r:38},
+];
+
+const EDGES = [
+  ['scalar','vector'],['coord','vector'],
+  ['vector','basis'],['vector','matrix'],['vector','lincomb'],['vector','cov'],
+  ['scalar','lincomb'],['basis','lincomb'],
+  ['lincomb','span'],['span','linind'],
+  ['basis','lintrans'],['matrix','lintrans'],['lincomb','lintrans'],
+  ['lintrans','matvec'],['lincomb','matvec'],
+  ['matrix','identity'],['basis','identity'],
+  ['matrix','det'],['lintrans','det'],['linind','det'],
+  ['det','singular'],
+  ['det','chareq'],['identity','chareq'],['matvec','chareq'],
+  ['chareq','eigval'],
+  ['eigval','eigvec'],['lintrans','eigvec'],['span','eigvec'],
+  ['eigvec','eigspace'],['span','eigspace'],
+  ['eigvec','power'],['eigval','power'],['matvec','power'],
+  ['matrix','cov'],
+  ['eigvec','pca'],['eigval','pca'],['cov','pca'],['power','pca'],
+];
+
+const DETAIL = {
+  scalar:{viz:'scalar',tag:'The atom of everything below.',
+    intuition:'A scalar is a single magnitude — a plain number like $3$ or $-1.5$. On its own it does little, but it is the only thing allowed to <em>stretch</em> other objects. Every richer idea here is, at bottom, scalars arranged and scaled.',
+    math:'a \\in \\mathbb{R}'},
+  coord:{viz:'coord',tag:'A number with an address.',
+    intuition:'A coordinate pins a scalar to a direction: "3 units along this axis." Coordinates are how we turn geometry into arithmetic — and the reason a vector can be written as a tidy list of numbers.',
+    math:'(x,\\,y)'},
+  vector:{viz:'vector',tag:'A list of scalars; an arrow with direction and length.',
+    intuition:'A vector is both a list of numbers and an arrow in space — two views of one object. The list view makes it computable; the arrow view makes it intuitive. Crucially, you can add two vectors and scale a vector by a number, and that is <em>all</em> a vector really needs to be.',
+    math:'\\mathbf{v} = \\begin{pmatrix}x\\\\ y\\end{pmatrix}',
+    lit:{text:'A vector can be anything where adding and scaling make sense — an arrow in space, or a list of numbers. Both views are useful.', who:'Evan Jonokuchi, notes on 3Blue1Brown', url:'https://ejonokuchi.com/essence.html'}},
+  basis:{viz:'basis',tag:'The two arrows everything is measured against.',
+    intuition:'The basis vectors $\\hat\\imath=(1,0)$ and $\\hat\\jmath=(0,1)$ are the rulers of the plane. Saying a vector is $(3,2)$ literally means "$3$ of $\\hat\\imath$ plus $2$ of $\\hat\\jmath$." Change where the basis points, and every coordinate is reinterpreted.',
+    math:'\\hat\\imath=\\begin{pmatrix}1\\\\0\\end{pmatrix},\\ \\hat\\jmath=\\begin{pmatrix}0\\\\1\\end{pmatrix}'},
+  lincomb:{viz:'lincomb',tag:'Scale some vectors, then add them.',
+    intuition:'A linear combination scales each vector and sums the results. It is the single operation that the entire subject is built from: every coordinate, every transformation, every eigenvector is, in the end, a linear combination of basis vectors.',
+    math:'\\mathbf{v}=x\\,\\hat\\imath + y\\,\\hat\\jmath'},
+  span:{viz:'span',tag:'Everywhere a set of vectors can reach.',
+    intuition:'The span is the full set of points you can hit with linear combinations of some vectors. One nonzero vector spans a line; two independent vectors span the whole plane. Span is what lets us talk about an eigenvector as a <em>line</em> rather than a single arrow.',
+    math:'\\operatorname{span}\\{\\mathbf{v}\\}=\\{\\,t\\mathbf{v}:t\\in\\mathbb{R}\\,\\}'},
+  linind:{viz:'linind',tag:'No vector is a leftover of the others.',
+    intuition:'Vectors are linearly independent when none is a combination of the rest — each adds a genuinely new direction. Dependence is the seed of collapse: if a matrix\u2019s columns are dependent, it squashes space, and its determinant is zero.',
+    math:'a\\mathbf{u}+b\\mathbf{v}=\\mathbf{0}\\ \\Rightarrow\\ a=b=0'},
+  matrix:{viz:'matrix',tag:'A relocation notice for the basis.',
+    intuition:'Read a matrix by its columns: the first column is where $\\hat\\imath$ lands, the second where $\\hat\\jmath$ lands. That is the whole secret. A matrix is not a grid of numbers to memorise — it is an instruction for moving the rulers of space.',
+    math:'A=\\begin{pmatrix}a&b\\\\ c&d\\end{pmatrix}'},
+  lintrans:{viz:'lintrans',tag:'A matrix, read as a verb.',
+    intuition:'A linear transformation moves every vector while keeping grid lines straight, evenly spaced, and the origin fixed. Because of that rigidity, knowing where the basis goes tells you where <em>everything</em> goes. This "matrix as motion" view is the one that makes eigenvectors visible.',
+    math:'T(\\mathbf{v}) = A\\mathbf{v}',
+    lit:{text:'Think of a matrix as a function whose input and output are both vectors — it warps the grid of space.', who:'Avneesh Khanna, Medium', url:'https://medium.com/@avneesh.khanna/eigenvectors-eigenvalues-an-intuitive-visual-explanation-f2ddc0b88bf5'}},
+  matvec:{viz:'matvec',tag:'Rebuild the vector from the moved basis.',
+    intuition:'Multiplying $A$ by $\\mathbf{v}$ means: take $\\mathbf{v}$\u2019s recipe $x,y$ and apply it to the <em>new</em> basis — the columns of $A$. The output is $x$ times column one plus $y$ times column two. Multiplication is just a linear combination in disguise.',
+    math:'A\\mathbf{v}=x\\begin{pmatrix}a\\\\c\\end{pmatrix}+y\\begin{pmatrix}b\\\\d\\end{pmatrix}'},
+  identity:{viz:'identity',tag:'The transformation that changes nothing.',
+    intuition:'The identity matrix leaves the basis exactly where it was, so $I\\mathbf{v}=\\mathbf{v}$. It seems trivial, but it is the hinge of the eigenvalue hunt: we rewrite $\\lambda\\mathbf{v}$ as $\\lambda I\\mathbf{v}$ so that we can factor out $(A-\\lambda I)$.',
+    math:'I=\\begin{pmatrix}1&0\\\\0&1\\end{pmatrix}'},
+  det:{viz:'det',tag:'How much a transformation scales area.',
+    intuition:'The determinant is the factor by which a transformation scales area, with a sign for orientation. Three axioms — multilinear, alternating, normalised — force its formula to be $ad-bc$, and nothing else. A determinant of zero means area was crushed to nothing: a collapse.',
+    math:'\\det A = ad-bc',
+    lit:{text:'The determinant measures area and volume scaling, and its sign tracks orientation.', who:'3Blue1Brown, Essence of Linear Algebra (ch. 6)', url:'https://www.3blue1brown.com/lessons/determinant'}},
+  singular:{viz:'singular',tag:'When the determinant hits zero.',
+    intuition:'A matrix is singular when its determinant is zero: it flattens the plane onto a line, so different inputs pile onto the same output and the move cannot be undone. This is precisely the condition that lets a nonzero vector be sent to zero — the doorway to eigenvalues.',
+    math:'\\det A = 0 \\ \\Leftrightarrow\\ A\\ \\text{collapses space}'},
+  cov:{viz:'cov',tag:'A matrix describing the shape of a data cloud.',
+    intuition:'For a cloud of data points, the covariance matrix records how much each coordinate varies and how the coordinates move together. It is symmetric, so its eigenvectors are always real and perpendicular — the natural axes of the cloud.',
+    math:'C=\\begin{pmatrix}\\operatorname{var}(x)&\\operatorname{cov}(x,y)\\\\ \\operatorname{cov}(x,y)&\\operatorname{var}(y)\\end{pmatrix}'},
+  eigval:{viz:'eigval',tag:'The stretch factor along a special direction.',
+    intuition:'An eigenvalue is the number by which a transformation stretches (or squishes, or flips) along one of its special directions. It is found as a root of the characteristic equation — the values of $\\lambda$ that make $A-\\lambda I$ collapse.',
+    math:'\\lambda^2 - (\\operatorname{tr}A)\\,\\lambda + \\det A = 0'},
+  chareq:{viz:'chareq',tag:'The equation that finds the eigenvalues.',
+    intuition:'Setting $\\det(A-\\lambda I)=0$ asks: for which $\\lambda$ does $A-\\lambda I$ collapse space? Those are exactly the eigenvalues. Expanding the determinant turns this into a polynomial in $\\lambda$ whose degree equals the matrix\u2019s size.',
+    math:'\\det(A-\\lambda I)=0'},
+  eigvec:{viz:'eigvec',tag:'The direction a transformation refuses to turn.',
+    intuition:'An eigenvector is a nonzero direction the transformation leaves on its own line — it is only scaled, never rotated. Plug an eigenvalue back into $(A-\\lambda I)\\mathbf{v}=\\mathbf{0}$ and the surviving line of solutions is the eigenvector. Most directions get knocked off their span; these few do not.',
+    math:'A\\mathbf{v}=\\lambda\\mathbf{v}',
+    lit:{text:'Eigenvectors stay on their own span during the transformation; everything else gets knocked off its line.', who:'3Blue1Brown, Essence of Linear Algebra (ch. 14)', url:'https://www.3blue1brown.com/lessons/eigenvalues'}},
+  eigspace:{viz:'eigspace',tag:'Not one arrow — a whole line of them.',
+    intuition:'Because any scalar multiple of an eigenvector is also an eigenvector, each eigenvalue owns an entire line (or higher space) of solutions: the eigenspace. When we "pick $x=b$" to write a single eigenvector, we are just naming one representative of that line.',
+    math:'E_\\lambda=\\{\\,\\mathbf{v}: A\\mathbf{v}=\\lambda\\mathbf{v}\\,\\}'},
+  power:{viz:'power',tag:'Apply a matrix again and again — watch it converge.',
+    intuition:'Write any vector as a blend of eigenvectors. Each application of $A$ multiplies each part by its eigenvalue, so the part with the largest $|\\lambda|$ quickly dominates. The direction "piles onto" the dominant eigenvector — which is how we find the main axis of real data without solving anything by hand.',
+    math:'A^{k}\\mathbf{v}_0 \\longrightarrow \\text{dominant eigenvector}'},
+  pca:{viz:'pca',tag:'Rank a cloud\u2019s directions by how much they vary.',
+    intuition:'Principal Component Analysis takes the eigenvectors of the covariance matrix and ranks them by eigenvalue: the largest is the direction of greatest spread, the next is the largest spread perpendicular to it, and so on. Keep the top few and you compress data while preserving most of its variation.',
+    math:'C\\mathbf{e}_1=\\lambda_1\\mathbf{e}_1,\\quad \\lambda_1\\ \\text{largest}',
+    lit:{text:'Keep the top-k eigenvectors and project the data onto them to reduce dimensionality.', who:'Rayan Yassminh, Medium', url:'https://medium.com/@ryassminh/math-for-ml-eigenvalues-and-eigenvectors-explained-simply-with-examples-f29459c9cc67'}},
+};
+
+/* article cross-links */
+const ARTICLE_LINK = {
+  vector:'index.html#matrix-verb', basis:'index.html#matrix-verb', matrix:'index.html#matrix-verb',
+  lintrans:'index.html#matrix-verb', matvec:'index.html#matrix-verb',
+  eigvec:'index.html#special-directions', eigval:'index.html#characteristic',
+  det:'index.html#determinant', singular:'index.html#collapse', chareq:'index.html#characteristic',
+  power:'index.html#power', cov:'index.html#fish', pca:'index.html#fish', eigspace:'index.html#characteristic',
+};
+</script>
+
+<script>
+/* ══════════════════════════════════════════════════════════════
+   MINI-VIGNETTES — tiny SVG schematics, one per concept
+══════════════════════════════════════════════════════════════ */
+const VB='0 0 240 140';
+function VA(x1,y1,x2,y2,c,w){w=w||2.4;const dx=x2-x1,dy=y2-y1,L=Math.hypot(dx,dy)||1,ux=dx/L,uy=dy/L,h=8;
+  const tx=x2-ux*h,ty=y2-uy*h,ax=tx-uy*h*.5,ay=ty+ux*h*.5,bx=tx+uy*h*.5,by=ty-ux*h*.5;
+  return `<line x1="${x1}" y1="${y1}" x2="${tx}" y2="${ty}" stroke="${c}" stroke-width="${w}" stroke-linecap="round"/>`+
+         `<polygon points="${x2},${y2} ${ax},${ay} ${bx},${by}" fill="${c}"/>`;}
+function grid(ox,oy,s,n,c){let g='';for(let k=-n;k<=n;k++){g+=`<line x1="${ox+k*s}" y1="${oy-n*s}" x2="${ox+k*s}" y2="${oy+n*s}" stroke="${c}" stroke-width=".5"/>`+
+  `<line x1="${ox-n*s}" y1="${oy+k*s}" x2="${ox+n*s}" y2="${oy+k*s}" stroke="${c}" stroke-width=".5"/>`;}return g;}
+const G='var(--br)',A1='var(--a1)',A2='var(--a2)',A3='var(--a3)',A4='var(--a4)',A5='var(--a5)',A6='var(--a6)',TX='var(--tx3)';
+
+const VIZ={
+  scalar:()=>`<svg viewBox="${VB}"><line x1="20" y1="50" x2="220" y2="50" stroke="${G}" stroke-width=".6"/>`+
+    VA(30,50,90,50,A5,3)+`<text x="60" y="42" text-anchor="middle" font-size="11" fill="${TX}">1</text>`+
+    VA(30,95,210,95,A5,3)+`<text x="120" y="87" text-anchor="middle" font-size="11" fill="${TX}">a = 3</text>`+
+    `<text x="228" y="74" font-size="10" fill="${TX}">×a</text></svg>`,
+  coord:()=>`<svg viewBox="${VB}"><line x1="20" y1="110" x2="220" y2="110" stroke="${TX}" stroke-width=".8"/>`+
+    `<line x1="40" y1="20" x2="40" y2="120" stroke="${TX}" stroke-width=".8"/>`+
+    `<line x1="160" y1="110" x2="160" y2="60" stroke="${A5}" stroke-width="1.2" stroke-dasharray="3 3"/>`+
+    `<line x1="40" y1="60" x2="160" y2="60" stroke="${A5}" stroke-width="1.2" stroke-dasharray="3 3"/>`+
+    `<circle cx="160" cy="60" r="5" fill="${A5}"/><text x="166" y="56" font-size="11" fill="${TX}">(x, y)</text></svg>`,
+  vector:()=>`<svg viewBox="${VB}">`+grid(40,110,28,3,G)+VA(40,110,180,40,A1,3)+
+    `<line x1="40" y1="110" x2="180" y2="110" stroke="${A1}" stroke-width="1" stroke-dasharray="3 3" opacity=".6"/>`+
+    `<line x1="180" y1="110" x2="180" y2="40" stroke="${A1}" stroke-width="1" stroke-dasharray="3 3" opacity=".6"/>`+
+    `<text x="186" y="40" font-size="11" fill="${TX}">v</text></svg>`,
+  basis:()=>`<svg viewBox="${VB}">`+grid(40,110,28,3,G)+VA(40,110,96,110,A1,3)+VA(40,110,40,54,A4,3)+
+    `<text x="74" y="124" font-size="11" fill="${TX}">î</text><text x="22" y="74" font-size="11" fill="${TX}">ĵ</text></svg>`,
+  lincomb:()=>`<svg viewBox="${VB}">`+grid(40,110,26,3,G)+
+    VA(40,110,118,110,A1,2.6)+VA(118,110,118,58,A4,2.6)+VA(40,110,118,58,A2,3)+
+    `<text x="186" y="60" font-size="10.5" fill="${TX}">xî + yĵ</text></svg>`,
+  span:()=>`<svg viewBox="${VB}"><line x1="20" y1="124" x2="220" y2="26" stroke="${A1}" stroke-width="1.4" stroke-dasharray="2 5" opacity=".8"/>`+
+    VA(120,75,176,48,A1,3)+`<circle cx="64" cy="102" r="3" fill="${A1}" opacity=".55"/><circle cx="92" cy="88" r="3" fill="${A1}" opacity=".55"/>`+
+    `<circle cx="148" cy="61" r="3" fill="${A1}" opacity=".55"/><text x="180" y="40" font-size="11" fill="${TX}">all tv</text></svg>`,
+  linind:()=>`<svg viewBox="${VB}"><polygon points="40,110 150,96 196,40 86,54" fill="${A1}" opacity=".14"/>`+
+    VA(40,110,150,96,A1,2.8)+VA(40,110,86,54,A4,2.8)+`<text x="180" y="92" font-size="10" fill="${TX}">spans area</text></svg>`,
+  matrix:()=>`<svg viewBox="${VB}"><polygon points="40,110 96,110 96,54 40,54" fill="none" stroke="${TX}" stroke-width="1" stroke-dasharray="4 3"/>`+
+    `<polygon points="40,110 150,96 188,30 78,44" fill="${A3}" opacity=".18"/>`+VA(40,110,150,96,A1,2.8)+VA(40,110,78,44,A4,2.8)+
+    `<text x="150" y="118" font-size="10" fill="${TX}">col 1</text><text x="40" y="38" font-size="10" fill="${TX}">col 2</text></svg>`,
+  lintrans:()=>{let g='';for(let k=-2;k<=2;k++){g+=`<line x1="${120+k*26}" y1="20" x2="${120+k*26+18}" y2="120" stroke="${A3}" stroke-width=".7" opacity=".7"/>`+
+    `<line x1="${50}" y1="${70+k*22}" x2="${190}" y2="${70+k*22-12}" stroke="${A3}" stroke-width=".7" opacity=".7"/>`;}return `<svg viewBox="${VB}">${g}<text x="120" y="134" text-anchor="middle" font-size="10" fill="${TX}">space, sheared</text></svg>`;},
+  matvec:()=>`<svg viewBox="${VB}">`+grid(48,110,26,3,G)+VA(48,110,118,58,A1,2.8)+VA(48,110,178,72,A2,3)+
+    `<text x="120" y="50" font-size="11" fill="${TX}">v</text><text x="182" y="68" font-size="11" fill="${TX}">Av</text></svg>`,
+  identity:()=>`<svg viewBox="${VB}">`+grid(120,70,24,3,G)+VA(120,70,178,40,A1,3)+
+    `<text x="120" y="128" text-anchor="middle" font-size="10" fill="${TX}">Iv = v</text></svg>`,
+  det:()=>`<svg viewBox="${VB}"><polygon points="50,108 158,92 196,40 88,56" fill="${A4}" opacity=".24" stroke="${A4}" stroke-width="1.4"/>`+
+    `<text x="120" y="82" text-anchor="middle" font-size="11" fill="${TX}">area = ad − bc</text></svg>`,
+  singular:()=>`<svg viewBox="${VB}"><line x1="40" y1="104" x2="200" y2="48" stroke="${A4}" stroke-width="5" opacity=".5" stroke-linecap="round"/>`+
+    `<text x="120" y="92" text-anchor="middle" font-size="11" fill="${TX}">area → 0</text></svg>`,
+  cov:()=>{let d='',seed=9;const rnd=()=>{seed=(seed*1103515245+12345)&0x7fffffff;return seed/0x7fffffff;};
+    for(let i=0;i<26;i++){const t=(rnd()-.5)*150,p=(rnd()-.5)*34;const x=120+t*.62-p*.49,y=70-t*.42-p*.62;d+=`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="2.6" fill="${A6}" opacity=".8"/>`;}
+    return `<svg viewBox="${VB}">${d}<text x="120" y="132" text-anchor="middle" font-size="10" fill="${TX}">a tilted cloud</text></svg>`;},
+  eigval:()=>`<svg viewBox="${VB}"><line x1="20" y1="70" x2="220" y2="70" stroke="${TX}" stroke-width=".8"/>`+
+    `<circle cx="90" cy="70" r="5" fill="${A2}"/><circle cx="170" cy="70" r="5" fill="${A2}"/>`+
+    `<text x="90" y="56" text-anchor="middle" font-size="11" fill="${TX}">λ₂</text><text x="170" y="56" text-anchor="middle" font-size="11" fill="${TX}">λ₁</text></svg>`,
+  chareq:()=>{let pts=[];for(let i=0;i<=40;i++){const x=20+i*5,X=(i-20)/9;const y=70+(X*X-1.4)*22;pts.push(`${x},${y.toFixed(1)}`);}
+    return `<svg viewBox="${VB}"><line x1="20" y1="70" x2="220" y2="70" stroke="${TX}" stroke-width=".7"/>`+
+    `<polyline points="${pts.join(' ')}" fill="none" stroke="${A2}" stroke-width="2"/>`+
+    `<circle cx="${20+(20-9.2)*5}" cy="70" r="4" fill="${A2}"/><circle cx="${20+(20+9.2)*5}" cy="70" r="4" fill="${A2}"/></svg>`;},
+  eigvec:()=>`<svg viewBox="${VB}"><line x1="30" y1="120" x2="210" y2="30" stroke="${A2}" stroke-width="1.2" stroke-dasharray="2 5" opacity=".7"/>`+
+    VA(80,95,128,71,A1,3)+VA(80,95,200,35,A2,3)+`<text x="120" y="60" font-size="10.5" fill="${TX}">v</text><text x="196" y="52" font-size="10.5" fill="${TX}">Av = λv</text></svg>`,
+  eigspace:()=>{let d='';for(let k=-2;k<=2;k++){const x=120+k*38,y=70-k*22;d+=`<circle cx="${x}" cy="${y}" r="3.4" fill="${A2}"/>`;}
+    return `<svg viewBox="${VB}"><line x1="20" y1="100" x2="220" y2="40" stroke="${A2}" stroke-width="1.3" opacity=".55"/>${d}<text x="120" y="124" text-anchor="middle" font-size="10" fill="${TX}">a line of eigenvectors</text></svg>`;},
+  power:()=>{let g='';const tgt=[Math.cos(-.45),Math.sin(-.45)];const starts=[-1.2,-.6,.1,.7];
+    starts.forEach((a,i)=>{const ang=-.45+a*.55;g+=VA(60,90,60+Math.cos(ang)*120,90+Math.sin(ang)*120,A1,1.6+i*.3);});
+    g=`<line x1="60" y1="90" x2="${60+tgt[0]*130}" y2="${90+tgt[1]*130}" stroke="${A2}" stroke-width="1.3" stroke-dasharray="2 5" opacity=".8"/>`+g;
+    return `<svg viewBox="${VB}">${g}<text x="190" y="56" font-size="10" fill="${TX}">→ dominant</text></svg>`;},
+  pca:()=>{let d='',seed=4;const rnd=()=>{seed=(seed*1103515245+12345)&0x7fffffff;return seed/0x7fffffff;};
+    for(let i=0;i<24;i++){const t=(rnd()-.5)*150,p=(rnd()-.5)*30;const x=120+t*.62-p*.49,y=72-t*.42-p*.62;d+=`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="2.6" fill="${A6}" opacity=".7"/>`;}
+    return `<svg viewBox="${VB}">${d}`+VA(120-46,72+31,120+50,72-34,A2,3)+`<text x="178" y="40" font-size="10" fill="${TX}">PC₁</text></svg>`;},
+};
+
+/* ══════════════════════════════════════════════════════════════
+   GRAPH RENDER + INTERACTION
+══════════════════════════════════════════════════════════════ */
+const NMAP={};NODES.forEach(n=>NMAP[n.id]=n);
+const FWD={},REV={};NODES.forEach(n=>{FWD[n.id]=[];REV[n.id]=[];});
+EDGES.forEach(([f,t])=>{FWD[f].push(t);REV[t].push(f);});
+function closure(id,adj){const seen=new Set(),stack=[id];while(stack.length){const c=stack.pop();(adj[c]||[]).forEach(n=>{if(!seen.has(n)){seen.add(n);stack.push(n);}});}return seen;}
+
+const EROOT='#e9b765',EUNLOCK='#5fd0d6',EBASE='rgba(172,192,224,.14)';
+const svg=document.getElementById('atlasSvg');
+const SVGNS='http://www.w3.org/2000/svg';
+let state={locked:null,trace:false};
+
+function pathD(f,t){const a=NMAP[f],b=NMAP[t];const my=(a.y+b.y)/2;return `M ${a.x} ${a.y} C ${a.x} ${my}, ${b.x} ${my}, ${b.x} ${b.y}`;}
+
+function buildGraph(){
+  let h='';
+  /* background stars */
+  let seed=17;const rnd=()=>{seed=(seed*1103515245+12345)&0x7fffffff;return seed/0x7fffffff;};
+  for(let i=0;i<70;i++){const x=rnd()*1060,y=rnd()*880,r=rnd()*1.1+.3,o=rnd()*.5+.12;
+    h+=`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${r.toFixed(2)}" fill="#cdd6e8" opacity="${o.toFixed(2)}"/>`;}
+  /* edges */
+  EDGES.forEach(([f,t],i)=>{h+=`<path class="edge" id="e${i}" d="${pathD(f,t)}" fill="none" stroke="${EBASE}" stroke-width="1.4"/>`;});
+  /* nodes */
+  NODES.forEach(n=>{const col=LAYER[n.layer].c;
+    h+=`<g class="gn" id="g_${n.id}" data-id="${n.id}">`+
+       `<circle class="halo" cx="${n.x}" cy="${n.y}" r="${n.r+12}" fill="${col}" opacity=".08"/>`+
+       `<circle class="ring" cx="${n.x}" cy="${n.y}" r="${n.r+5}" fill="none" stroke="${col}" stroke-width="2" opacity="0"/>`+
+       `<circle class="core" cx="${n.x}" cy="${n.y}" r="${n.r}" fill="${col}" opacity=".92"/>`+
+       `<circle cx="${n.x}" cy="${n.y}" r="${n.r}" fill="url(#coreshade)"/>`+
+       `<text class="gn-label" x="${n.x}" y="${n.y-1}" text-anchor="middle" font-size="${n.id==='eigvec'||n.id==='pca'?13:11.5}">${n.label}</text>`+
+       `<text class="gn-sub" x="${n.x}" y="${n.y+12}" text-anchor="middle" font-size="8.6">${n.sub}</text>`+
+       `</g>`;});
+  const defs=`<defs><radialGradient id="coreshade" cx="38%" cy="32%" r="75%">`+
+    `<stop offset="0%" stop-color="#ffffff" stop-opacity=".34"/><stop offset="55%" stop-color="#ffffff" stop-opacity="0"/>`+
+    `<stop offset="100%" stop-color="#000000" stop-opacity=".22"/></radialGradient></defs>`;
+  svg.innerHTML=defs+h;
+  /* wire events */
+  NODES.forEach(n=>{const g=document.getElementById('g_'+n.id);
+    g.addEventListener('pointerenter',()=>{if(!state.trace) applyHi(n.id);});
+    g.addEventListener('pointerleave',()=>{if(!state.trace) applyHi(state.locked);});
+    g.addEventListener('click',()=>{if(state.trace) return; state.locked=n.id; applyHi(n.id); openDetail(n.id);});
+  });
+}
+
+function setEdge(i,stroke,w,flow,op){const e=document.getElementById('e'+i);e.setAttribute('stroke',stroke);
+  e.setAttribute('stroke-width',w);e.style.opacity=op;e.classList.toggle('flow',!!flow);}
+function setNode(id,opacity,ring){const g=document.getElementById('g_'+id);g.style.opacity=opacity;
+  g.querySelector('.ring').setAttribute('opacity',ring?'1':'0');
+  g.querySelector('.halo').setAttribute('opacity',ring?'.2':'.08');}
+
+function clearHi(){NODES.forEach(n=>setNode(n.id,1,false));EDGES.forEach((e,i)=>setEdge(i,EBASE,1.4,false,1));}
+
+function applyHi(id){
+  if(!id){clearHi();return;}
+  const anc=closure(id,REV),desc=closure(id,FWD);
+  const keep=new Set([id,...anc,...desc]);
+  NODES.forEach(n=>setNode(n.id, keep.has(n.id)?1:.16, n.id===id));
+  EDGES.forEach(([f,t],i)=>{
+    const ancSet=(f===id||anc.has(f))&&(t===id||anc.has(t));
+    const descSet=(f===id||desc.has(f))&&(t===id||desc.has(t));
+    if(ancSet) setEdge(i,EROOT,2.4,true,.95);
+    else if(descSet) setEdge(i,EUNLOCK,2.4,true,.95);
+    else setEdge(i,EBASE,1.2,false,.07);
+  });
+}
+
+/* trace path animation */
+let traceTimer=null;
+function tracePath(target){
+  clearTrace();state.trace=true;state.locked=null;
+  const anc=closure(target,REV);const chain=[...anc,target];
+  chain.sort((a,b)=>NMAP[b].y-NMAP[a].y); /* bottom (foundations) first */
+  /* dim everything */
+  NODES.forEach(n=>setNode(n.id,.14,false));EDGES.forEach((e,i)=>setEdge(i,EBASE,1.1,false,.05));
+  const cap=document.getElementById('atlasCap');
+  const shown=new Set();let k=0;
+  function step(){
+    if(k>=chain.length){state.trace=false;
+      cap.innerHTML=`<b>Path complete.</b> These ${chain.length} ideas, in order, are everything <b>${NMAP[target].label}</b> rests on. Click any star to dig in.`;return;}
+    const id=chain[k];shown.add(id);
+    setNode(id,1,id===target);
+    /* light edges fully inside shown set */
+    EDGES.forEach(([f,t],i)=>{if(shown.has(f)&&shown.has(t)) setEdge(i,EROOT,2.3,true,.95);});
+    cap.innerHTML=`<b>Step ${k+1} / ${chain.length}:</b> ${NMAP[id].label} — <span style="color:#aab4c8">${NMAP[id].sub}</span>`;
+    k++;traceTimer=setTimeout(step,560);
+  }
+  step();
+}
+function clearTrace(){if(traceTimer){clearTimeout(traceTimer);traceTimer=null;}state.trace=false;}
+
+document.getElementById('btnEig').addEventListener('click',()=>tracePath('eigvec'));
+document.getElementById('btnPca').addEventListener('click',()=>tracePath('pca'));
+document.getElementById('btnReset').addEventListener('click',()=>{clearTrace();state.locked=null;clearHi();
+  document.getElementById('atlasCap').innerHTML='Hover a star to trace its lineage. Click to open the concept.';});
+
+/* ══════════════════════════════════════════════════════════════
+   DETAIL PANEL
+══════════════════════════════════════════════════════════════ */
+const detail=document.getElementById('detail'),scrim=document.getElementById('scrim');
+function openDetail(id){
+  const d=DETAIL[id],n=NMAP[id],col=LAYER[n.layer].c;
+  document.getElementById('dLayer').textContent=LAYER[n.layer].name;
+  document.getElementById('dLayer').style.color=col;
+  document.getElementById('dTitle').textContent=n.label;
+  document.getElementById('dTag').textContent=d.tag||'';
+  const needs=REV[id]||[];
+  let body='';
+  body+=`<div class="vfig">${(VIZ[d.viz]||(()=>''))()}</div>`;
+  body+=`<div class="sec-t">Intuition</div><p>${d.intuition}</p>`;
+  body+=`<div class="sec-t">The mathematics</div><div class="mathbox">$$${d.math}$$</div>`;
+  if(ARTICLE_LINK[id]) body+=`<p style="margin-top:10px"><a href="${ARTICLE_LINK[id]}">See it move in the article →</a></p>`;
+  if(needs.length){body+=`<div class="sec-t">Rests on</div><div class="needs">`+
+    needs.map(p=>`<span class="chip" data-go="${p}">${NMAP[p].label}</span>`).join('')+`</div>`;}
+  if(d.lit){body+=`<div class="sec-t">From the literature</div><div class="litcard">${d.lit.text}<span class="who">— ${d.lit.who} · <a href="${d.lit.url}" target="_blank" rel="noopener">read it</a></span></div>`;}
+  const bd=document.getElementById('dBody');bd.innerHTML=body;bd.scrollTop=0;
+  bd.querySelectorAll('.chip[data-go]').forEach(c=>c.addEventListener('click',()=>{const g=c.getAttribute('data-go');state.locked=g;applyHi(g);openDetail(g);}));
+  detail.classList.add('open');scrim.classList.add('show');
+  renderMath(bd);
+}
+function closeDetail(){detail.classList.remove('open');scrim.classList.remove('show');state.locked=null;if(!state.trace)clearHi();}
+document.getElementById('detailX').addEventListener('click',closeDetail);
+scrim.addEventListener('click',closeDetail);
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeDetail();});
+
+/* ══════════════════════════════════════════════════════════════
+   MATH LADDER
+══════════════════════════════════════════════════════════════ */
+const RUNGS=[
+  {n:'Scalar',int:'A single magnitude. The only thing that can stretch another object.',math:'a \\in \\mathbb{R}',viz:'scalar'},
+  {n:'Vector',int:'A list of scalars — and an arrow. You may add two, and scale one.',math:'\\mathbf{v}=\\begin{pmatrix}x\\\\ y\\end{pmatrix}',viz:'vector'},
+  {n:'Basis',int:'The two reference arrows every coordinate is quietly counting.',math:'\\hat\\imath=\\begin{pmatrix}1\\\\0\\end{pmatrix},\\ \\hat\\jmath=\\begin{pmatrix}0\\\\1\\end{pmatrix}',viz:'basis'},
+  {n:'Linear combination',int:'Scale each basis arrow, then add. This one move builds everything.',math:'\\mathbf{v}=x\\,\\hat\\imath+y\\,\\hat\\jmath',viz:'lincomb'},
+  {n:'Matrix',int:'Where the basis lands. Column one is the new î, column two the new ĵ.',math:'A=\\begin{pmatrix}a&b\\\\ c&d\\end{pmatrix}',viz:'matrix'},
+  {n:'Matrix × vector',int:'Rebuild v from the moved basis — multiplication is a linear combination.',math:'A\\mathbf{v}=x\\begin{pmatrix}a\\\\c\\end{pmatrix}+y\\begin{pmatrix}b\\\\d\\end{pmatrix}',viz:'matvec'},
+  {n:'Determinant',int:'The factor by which the transformation scales area; zero means collapse.',math:'\\det A = ad-bc',viz:'det'},
+  {n:'Shift by λ',int:'Subtract λ down the diagonal so we can ask when the map collapses.',math:'A-\\lambda I=\\begin{pmatrix}a-\\lambda&b\\\\ c&d-\\lambda\\end{pmatrix}',viz:'identity'},
+  {n:'Characteristic equation',int:'Collapse happens exactly when this determinant is zero.',math:'\\det(A-\\lambda I)=0',viz:'chareq'},
+  {n:'Eigenvalue',int:'The roots of that polynomial — the special stretch factors.',math:'\\lambda^2-(\\operatorname{tr}A)\\lambda+\\det A=0',viz:'eigval'},
+  {n:'Eigenvector',int:'Feed an eigenvalue back in: the direction the map only scales.',math:'A\\mathbf{v}=\\lambda\\mathbf{v}',viz:'eigvec'},
+  {n:'Eigenspace',int:'Every scalar multiple works too — so it is a whole line.',math:'E_\\lambda=\\{\\,t\\mathbf{v}:t\\in\\mathbb{R}\\,\\}',viz:'eigspace'},
+  {n:'PCA',int:'Rank the eigenvectors of a data cloud’s covariance by eigenvalue — the grain of the data.',math:'C\\mathbf{e}_1=\\lambda_1\\mathbf{e}_1,\\quad \\lambda_1\\ \\text{largest}',viz:'pca'},
+];
+function buildLadder(){
+  const el=document.getElementById('ladderEl');
+  el.innerHTML=RUNGS.map((r,i)=>`<div class="rung" data-i="${i}">`+
+    `<div class="num">${String(i+1).padStart(2,'0')}</div>`+
+    `<div><div class="rname">${r.n}</div><div class="rint">${r.int}</div></div>`+
+    `<div><div class="rmath">$$${r.math}$$</div><div class="rviz">${(VIZ[r.viz]||(()=>''))()}</div></div>`+
+    `</div>`).join('');
+  renderMath(el);
+  observeIn(el.querySelectorAll('.rung'));
+}
+
+/* ══════════════════════════════════════════════════════════════
+   REFERENCES
+══════════════════════════════════════════════════════════════ */
+const REFS=[
+  {src:'3Blue1Brown · video',title:'Eigenvectors and eigenvalues',blurb:'Grant Sanderson’s definitive visual: most vectors get knocked off their span by a transformation, but eigenvectors stay on their own line — and for a 3D rotation, that line is the axis of rotation.',who:'Grant Sanderson',url:'https://www.3blue1brown.com/lessons/eigenvalues'},
+  {src:'Medium · intuition',title:'The spinning-globe analogy',blurb:'Spin a globe and every point moves except the poles — those fixed points define the axis. The eigenvector is the pole; the eigenvalue is how much it is scaled.',who:'Mukesh Kumar',url:'https://medium.com/@mukeshkumar_46704/my-intuition-to-learn-eigenvalues-and-eigenvectors-c185f4f3435c'},
+  {src:'Medium · data science',title:'The leading axis of a spinning shape',blurb:'Picture a matrix as a noisy high-dimensional shape that is rotating; the leading eigenvector is its most meaningful axis and the eigenvalue measures that axis’s importance.',who:'Max Brenner',url:'https://medium.com/@maxbrenner-ai/eigenvalues-and-eigenvectors-in-data-science-intuition-and-applications-25dfc4a128af'},
+  {src:'Towards Data Science',title:'The vectors that keep their heading',blurb:'Under a horizontal scaling, vectors at 0° and 90° keep pointing the same way while the 45° vector turns — a clean first look at which directions a transform preserves.',who:'Eigen Intuitions',url:'https://towardsdatascience.com/eigen-intuitions-understanding-eigenvectors-and-eigenvalues-630e9ef1f719/'},
+  {src:'Medium · ML',title:'Everyday eigen-hints',blurb:'A settling spinning top, a basketball on a fingertip, a cart that drifts one way — each hints at a preferred, stable direction, and connects eigenvectors to PCA, PageRank and SVD.',who:'Rayan Yassminh',url:'https://medium.com/@ryassminh/math-for-ml-eigenvalues-and-eigenvectors-explained-simply-with-examples-f29459c9cc67'},
+  {src:'Encyclopedic',title:'Coffee, globes, and molecule shapes',blurb:'From the still point in stirred coffee to the principal axes of a molecule’s gyration tensor, eigen-directions reveal the hidden skeleton of a system.',who:'Bohrium / Feynman',url:'https://www.bohrium.com/en/sciencepedia/feynman/keyword/eigenvalues_and_eigenvectors'},
+];
+function buildRefs(){
+  const el=document.getElementById('refGrid');
+  el.innerHTML=REFS.map(r=>`<div class="refcard"><div class="rsrc">${r.src}</div><h3>${r.title}</h3><p>${r.blurb}</p>`+
+    `<a href="${r.url}" target="_blank" rel="noopener">${r.who} ↗</a></div>`).join('');
+  observeIn(el.querySelectorAll('.refcard'));
+}
+
+/* ══════════════════════════════════════════════════════════════
+   UTIL — scroll reveal + KaTeX retry
+══════════════════════════════════════════════════════════════ */
+function observeIn(els){const io=new IntersectionObserver((es)=>{es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}});},{threshold:.18});
+  els.forEach((el,i)=>{el.style.transitionDelay=(Math.min(i,6)*60)+'ms';io.observe(el);});}
+function renderMath(el,tries){tries=tries||0;if(window.renderMathInElement){try{window.renderMathInElement(el,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}],throwOnError:false});}catch(e){}}else if(tries<30){setTimeout(()=>renderMath(el,tries+1),200);}}
+
+/* ── boot ── */
+buildGraph();buildLadder();buildRefs();
+</script>
+</body>
+</html>

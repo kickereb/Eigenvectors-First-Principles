@@ -1,0 +1,978 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Eigenvectors from First Principles</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]});"></script>
+<style>
+/* ─── design tokens ─── */
+:root{
+  --bg:#fbfaf7; --sf:#ffffff; --sf2:#f1efe8; --sf3:#e8e6de;
+  --tx:#26252a; --tx2:#5f5e5a; --tx3:#8a8980;
+  --br:rgba(0,0,0,.11); --br2:rgba(0,0,0,.22);
+  --a1:#185fa5; --a2:#d85a30; --a3:#1d9e75; --a4:#7f77dd; --a5:#ba7517;
+  --grid:rgba(0,0,0,.08); --maxw:800px; --rad:12px;
+}
+@media(prefers-color-scheme:dark){
+  :root{
+    --bg:#18171c; --sf:#222128; --sf2:#2a2930; --sf3:#333240;
+    --tx:#eae8e0; --tx2:#b0ae a6; --tx3:#888690;
+    --br:rgba(255,255,255,.12); --br2:rgba(255,255,255,.25);
+    --a1:#85b7eb; --a2:#f09a7c; --a3:#5dcaa5; --a4:#afa9ec; --a5:#fac675;
+    --grid:rgba(255,255,255,.08);
+  }
+}
+/* ─── reset & base ─── */
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--tx);font-family:-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;font-size:17px;line-height:1.78}
+a{color:var(--a1)}
+
+/* ─── nav ─── */
+nav{position:sticky;top:0;z-index:100;background:var(--sf);border-bottom:1px solid var(--br);padding:10px 24px}
+.nav-r{max-width:var(--maxw);margin:0 auto;display:flex;gap:20px;flex-wrap:wrap;align-items:center;font-size:13px}
+.nav-r strong{color:var(--tx);margin-right:4px}
+.nav-r a{color:var(--tx3);text-decoration:none}
+.nav-r a:hover{color:var(--a1)}
+
+/* ─── layout ─── */
+main{max-width:var(--maxw);margin:0 auto;padding:0 24px 96px}
+section{padding-top:72px}
+h1{font-size:2.3rem;font-weight:700;line-height:1.18;letter-spacing:-.02em;margin-bottom:20px}
+h2{font-size:1.4rem;font-weight:600;margin-bottom:20px}
+p{margin-bottom:20px}
+ul,ol{margin:0 0 20px 28px}li{margin-bottom:6px}
+.lede{font-size:1.1rem;color:var(--tx2);margin-bottom:32px}
+.fwd{font-style:italic;color:var(--tx3);margin-top:24px;padding-top:20px;border-top:1px solid var(--br)}
+
+/* ─── figures ─── */
+figure{background:var(--sf);border:1px solid var(--br);border-radius:var(--rad);padding:20px 20px 14px;margin:30px 0}
+figcaption{font-size:13px;color:var(--tx3);margin-top:12px;line-height:1.55}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
+
+/* ─── controls ─── */
+.ctrl{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:12px}
+.ctrl label{font-size:13px;color:var(--tx2)}
+input[type=range]{flex:1;min-width:80px;accent-color:var(--a1)}
+input[type=number]{width:58px;text-align:center;padding:4px 5px;border:1px solid var(--br2);border-radius:6px;background:var(--sf);color:var(--tx);font-size:14px}
+input[type=checkbox]{accent-color:var(--a3)}
+button{padding:5px 13px;border:1px solid var(--br2);border-radius:6px;background:transparent;color:var(--tx);font-size:13px;cursor:pointer;transition:background .13s}
+button:hover{background:var(--sf2)}
+button.hi{background:var(--a1);color:#fff;border-color:transparent}
+button.hi:hover{opacity:.87}
+
+/* ─── matrix input layout ─── */
+.mwrap{display:flex;align-items:center;gap:4px}
+.mbk{font-size:38px;color:var(--tx3);line-height:1;user-select:none}
+.mgrid{display:grid;grid-template-columns:58px 58px;gap:5px}
+.psets{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
+
+/* ─── two-column ─── */
+.two{display:grid;grid-template-columns:minmax(300px,1fr) minmax(200px,auto);gap:20px;align-items:start}
+@media(max-width:600px){.two{grid-template-columns:1fr}}
+
+/* ─── readouts ─── */
+.mono{font-family:"SF Mono",Menlo,Consolas,monospace;font-size:13px;color:var(--tx2)}
+.ebox{font-size:13px;padding:9px 12px;border-radius:8px;background:var(--sf2);min-height:36px;transition:background .18s,color .18s}
+.ebox.found{background:rgba(29,158,117,.14);color:var(--a3);font-weight:500}
+.srow{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.sc{background:var(--sf2);border-radius:7px;padding:7px 11px;font-size:13px;color:var(--tx2);line-height:1.4}
+.sc b{color:var(--tx)}
+.bar-w{height:8px;background:var(--sf3);border-radius:4px;overflow:hidden;margin-top:4px}
+.bar-f{height:100%;background:var(--a3);border-radius:4px;transition:width .06s}
+.cbox{background:rgba(29,158,117,.1);border:1px solid rgba(29,158,117,.28);border-radius:8px;padding:10px 14px;font-size:13px;color:var(--tx2);margin-top:8px;line-height:1.6}
+.cbox b{color:var(--a3)}
+
+/* ─── footer ─── */
+footer{border-top:1px solid var(--br);padding:28px 24px;text-align:center;font-size:13px;color:var(--tx3);max-width:var(--maxw);margin:0 auto}
+</style>
+</head>
+<body>
+
+<nav aria-label="Article sections">
+  <div class="nav-r">
+    <strong>Eigenvectors</strong>
+    <a href="#matrix-verb">Matrix as verb</a>
+    <a href="#collapse">The collapse</a>
+    <a href="#determinant">Determinant</a>
+    <a href="#characteristic">Finding them</a>
+    <a href="#power">Repetition</a>
+    <a href="#fish">Fish data</a>
+    <a href="concept-map.html" style="margin-left:auto;color:var(--a2)">Concept map →</a>
+  </div>
+</nav>
+
+<main>
+
+<!-- ═══ HOOK ═══ -->
+<section id="hook">
+<h1>Eigenvectors from first&nbsp;principles</h1>
+<p class="lede">A matrix takes a vector and moves it. Most directions get stretched <em>and</em> rotated. But a rare few only get stretched — never rotated. Those are eigenvectors. Finding them requires building, from scratch, one of the most elegant arguments in mathematics.</p>
+<p>This page is a proof, not a survey. Every claim follows from the one before it. The only starting point is the definition of coordinates. By the end, you'll use the same logic to uncover a hidden axis in a cloud of fish measurements — a direction the data insists upon, even though no one labelled it.</p>
+<p class="fwd">To see which directions are special, we first need to see what a matrix does to an ordinary vector.</p>
+</section>
+
+<!-- ═══ MATRIX AS VERB ═══ -->
+<section id="matrix-verb">
+<h2>A matrix is a verb</h2>
+<p>A vector like $(3,\,2)$ is a recipe: go 3 steps along the horizontal reference arrow $\hat\imath = (1,0)$, then 2 steps along the vertical $\hat\jmath = (0,1)$. Coordinates are always a recipe written in terms of some reference pair — and nothing more.</p>
+<p>A $2\times 2$ matrix is a <em>relocation notice</em> for those two reference arrows. Its first column is the new home of $\hat\imath$; its second column is the new home of $\hat\jmath$. For the matrix $A = \begin{pmatrix}2&1\\1&2\end{pmatrix}$, the first column $(2,1)$ tells you where $\hat\imath$ lands, and the second column $(1,2)$ tells you where $\hat\jmath$ lands.</p>
+<p>Because the move keeps grid lines straight and evenly spaced — that's what linearity means — every other vector is carried along automatically. The vector that used to mean "3 steps along $\hat\imath$ and 2 steps along $\hat\jmath$" now means "3 steps along the <em>new</em> $\hat\imath$ and 2 steps along the <em>new</em> $\hat\jmath$":</p>
+$$A\mathbf{v} = x\cdot\text{(new }\hat\imath) + y\cdot\text{(new }\hat\jmath)$$
+<p>The widget below makes this tangible. The faint grid shows the whole plane being warped. Edit the matrix or choose a preset, then drag the blue arrow.</p>
+
+<figure>
+<h2 class="sr-only">Interactive matrix transformation explorer. Edit the 2×2 matrix, then drag the blue input vector to see the orange output vector. The eigen-detection panel highlights when the two align.</h2>
+<div class="two">
+  <svg id="v1svg" viewBox="0 0 440 440" width="440" style="max-width:100%;display:block;touch-action:none;cursor:crosshair"
+    role="img"><title>Matrix transformation plane</title><desc>The blue arrow is the input vector v; the orange arrow is Av. The faint grid shows the warped coordinate system. Drag the blue arrow tip to explore.</desc></svg>
+  <div>
+    <div style="font-size:13px;color:var(--tx2);margin-bottom:6px">Matrix $A$</div>
+    <div class="mwrap">
+      <span class="mbk">[</span>
+      <div class="mgrid">
+        <input type="number" id="v1a" value="2" step="0.5">
+        <input type="number" id="v1b" value="1" step="0.5">
+        <input type="number" id="v1c" value="1" step="0.5">
+        <input type="number" id="v1d" value="2" step="0.5">
+      </div>
+      <span class="mbk">]</span>
+    </div>
+    <div class="psets">
+      <button onclick="v1set(2,1,1,2)">stretch</button>
+      <button onclick="v1set(1,1,0,1)">shear</button>
+      <button onclick="v1set(1.5,0,0,1.5)">scale</button>
+      <button onclick="v1set(0,-1,1,0)">rotate 90°</button>
+      <button onclick="v1set(1,0,0,-1)">reflect</button>
+    </div>
+    <div class="mono" id="v1rd" style="margin:12px 0 6px"></div>
+    <div class="ebox" id="v1eb">Drag the blue arrow — watch for the orange to line up with it.</div>
+  </div>
+</div>
+<figcaption>Try <strong>stretch</strong> and drag to $(1,1)$: the orange arrow triples. Try <strong>rotate 90°</strong>: no matter where you drag, the orange is always perpendicular — no eigenvectors exist for a pure rotation.</figcaption>
+</figure>
+
+<p class="fwd">Drag enough vectors and you'll notice most get knocked off their original line. But a few don't. Those are the ones we care about.</p>
+</section>
+
+<!-- ═══ SPECIAL DIRECTIONS ═══ -->
+<section id="special-directions">
+<h2>The directions that don't turn</h2>
+<p>Load the <strong>stretch</strong> preset ($A = \begin{pmatrix}2&1\\1&2\end{pmatrix}$) and drag the blue arrow to the diagonal line through $(1,1)$. The orange output lands exactly on top — stretched to three times the length, but pointing the same way. Now drag to $(1,-1)$: the output is identical to the input, unchanged.</p>
+<p>An <strong>eigenvector</strong> is any nonzero vector that the transformation leaves on its own line — the output is a scalar multiple of the input. Written as an equation:</p>
+$$A\mathbf{v} = \lambda\,\mathbf{v}$$
+<p>The scalar $\lambda$ is the <strong>eigenvalue</strong> — how much the transformation stretches or compresses along that direction. For the stretch matrix: the $(1,1)$ direction has $\lambda = 3$, the $(1,-1)$ direction has $\lambda = 1$. All other directions rotate off their lines; these two don't.</p>
+<p>Reload <strong>rotate 90°</strong> and try to find an eigenvector. There are none — every direction gets turned. A matrix with no real eigenvalues is one whose transformation is an inescapable rotation. That's information, not a failure.</p>
+<p class="fwd">Fine — they're special. But given a matrix, how would we actually find them?</p>
+</section>
+
+<!-- ═══ COLLAPSE ═══ -->
+<section id="collapse">
+<h2>Finding them requires detecting a collapse</h2>
+<p>Rearrange $A\mathbf{v} = \lambda\mathbf{v}$. Subtract $\lambda\mathbf{v}$ from both sides; insert the identity matrix $I$ so both sides have a matrix on the left:</p>
+$$(A - \lambda I)\,\mathbf{v} = \mathbf{0}$$
+<p>We want a <em>nonzero</em> vector $\mathbf{v}$ in the kernel of $(A - \lambda I)$. That's only possible when the matrix collapses space — squashes some direction down to nothing. An invertible matrix has no such direction; the only vector it kills is zero itself. So a nonzero eigenvector exists precisely when $A - \lambda I$ is a <em>collapsing</em> matrix.</p>
+<p>Collapse has one algebraic fingerprint: the <strong>determinant equals zero</strong>. The determinant measures how much a transformation scales area. A collapsing transformation scales area to zero. So the hunt for eigenvalues reduces to:</p>
+$$\det(A - \lambda I) = 0$$
+<p>This is the equation we need to solve — for the values of $\lambda$ that make it true. But to use it, we'd better understand what the determinant actually is — not just the formula, but why that formula is the only possible answer.</p>
+<p class="fwd">Everything hinges on one number that detects collapse. We'd better build it from scratch.</p>
+</section>
+
+<!-- ═══ DETERMINANT ═══ -->
+<section id="determinant">
+<h2>What the determinant actually is</h2>
+<p>Rather than memorise $ad - bc$, let's derive it. We need a function that takes a matrix's two columns and returns its "signed area scale factor". We'll write down the three properties such a function <em>must</em> have, and then show exactly one function satisfies all three — which forces the formula.</p>
+<p>Think of $\det$ as a function of two column vectors. The three axioms:</p>
+<ol>
+  <li><strong>Multilinear</strong>: linear in each column separately. Doubling a column doubles the determinant: $\det(\alpha\mathbf{u} + \beta\mathbf{u}',\,\mathbf{v}) = \alpha\det(\mathbf{u},\mathbf{v}) + \beta\det(\mathbf{u}',\mathbf{v})$, and likewise for the second slot.</li>
+  <li><strong>Alternating</strong>: $\det(\mathbf{v},\mathbf{v}) = 0$ for any $\mathbf{v}$. A "parallelogram" whose two sides are the same vector is a degenerate line segment — no area.</li>
+  <li><strong>Normalisation</strong>: $\det(\hat\imath, \hat\jmath) = 1$. The unit square has unit area.</li>
+</ol>
+<p>Now derive the formula. Write the columns of $A = \begin{pmatrix}a&b\\c&d\end{pmatrix}$ in the basis: $\mathbf{c}_1 = a\hat\imath + c\hat\jmath$ and $\mathbf{c}_2 = b\hat\imath + d\hat\jmath$. Expand by multilinearity:</p>
+$$\det(\mathbf{c}_1, \mathbf{c}_2) = ab\,\det(\hat\imath,\hat\imath) + ad\,\det(\hat\imath,\hat\jmath) + cb\,\det(\hat\jmath,\hat\imath) + cd\,\det(\hat\jmath,\hat\jmath)$$
+<p>The alternating axiom kills the first and last terms. From $\det(\hat\imath+\hat\jmath,\,\hat\imath+\hat\jmath)=0$, expanding by multilinearity gives $\det(\hat\jmath,\hat\imath) = -\det(\hat\imath,\hat\jmath)$. With normalisation, $\det(\hat\imath,\hat\jmath)=1$, so $\det(\hat\jmath,\hat\imath)=-1$. What remains:</p>
+$$\det(A) = ad\cdot 1 + cb\cdot(-1) = ad - bc$$
+<p>The formula isn't memorised — it's <em>forced</em>. The widget below shows the geometry: watch the unit square inflate into the parallelogram spanned by $A$'s columns. The area readout equals the determinant.</p>
+
+<figure>
+<h2 class="sr-only">Interactive determinant-as-area visualisation. A morph slider transforms the unit square into the parallelogram defined by the matrix columns. The signed area equals the determinant.</h2>
+<div class="two">
+  <svg id="v3svg" viewBox="0 0 380 340" width="380" style="max-width:100%;display:block" role="img">
+    <title>Unit square morphing to parallelogram</title>
+    <desc>As the slider moves from 0 to 100%, the unit square defined by the standard basis vectors deforms into the parallelogram defined by the matrix columns. The signed area tracks the determinant exactly.</desc>
+  </svg>
+  <div>
+    <div style="font-size:13px;color:var(--tx2);margin-bottom:6px">Matrix $A$</div>
+    <div class="mwrap">
+      <span class="mbk">[</span>
+      <div class="mgrid">
+        <input type="number" id="v3a" value="3" step="0.5">
+        <input type="number" id="v3b" value="1" step="0.5">
+        <input type="number" id="v3c" value="1" step="0.5">
+        <input type="number" id="v3d" value="2" step="0.5">
+      </div>
+      <span class="mbk">]</span>
+    </div>
+    <div class="psets">
+      <button onclick="v3set(3,1,1,2)">stretch</button>
+      <button onclick="v3set(2,0,0,2)">scale</button>
+      <button onclick="v3set(1,1,0,1)">shear</button>
+      <button onclick="v3set(2,1,1,-1)">flip</button>
+    </div>
+    <div class="ctrl" style="margin-top:14px">
+      <label>morph</label>
+      <input type="range" id="v3t" min="0" max="100" value="0">
+      <button onclick="v3play()">&#9654; play</button>
+    </div>
+    <div class="srow" style="margin-top:14px">
+      <div class="sc">Signed area <b id="v3area">—</b></div>
+      <div class="sc" id="v3note" style="display:none"></div>
+    </div>
+  </div>
+</div>
+<figcaption>Set both columns to be multiples of each other (e.g. change $b,d$ to $6,2$ — twice column 1) and the parallelogram collapses to a line. Area hits zero. Determinant is zero. That's the collapse condition.</figcaption>
+</figure>
+
+<p>The sign carries real information. Positive: the transformation preserves orientation (counterclockwise stays counterclockwise). Negative: it flips. Zero: full collapse — the plane is squashed to a line, and the matrix is not invertible.</p>
+<p>The figure below shows <em>why</em> the area of the parallelogram equals $ad - bc$: inscribe it in the bounding rectangle and subtract the surrounding pieces.</p>
+
+<figure>
+<h2 class="sr-only">Box-subtraction proof that the parallelogram area equals ad minus bc. The bounding rectangle is decomposed into the parallelogram plus two corner rectangles and four right triangles. Toggling "show slivers" reveals the decomposition.</h2>
+<div class="two">
+  <svg id="fasvg" viewBox="0 0 360 320" width="360" style="max-width:100%;display:block" role="img">
+    <title>Box-subtraction proof of ad minus bc</title>
+    <desc>The parallelogram sits inside a bounding rectangle of area (a+b)(c+d). Subtracting two amber corner rectangles and four triangles (two coral, two purple) leaves ad minus bc.</desc>
+  </svg>
+  <div>
+    <div style="font-size:13px;color:var(--tx2);margin-bottom:8px">$a,b,c,d > 0$ required for this dissection</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
+      <label style="font-size:13px">$a$<br><input type="number" id="faa" value="3" step="0.5" min="0.5" max="7"></label>
+      <label style="font-size:13px">$b$<br><input type="number" id="fab" value="1" step="0.5" min="0.5" max="7"></label>
+      <label style="font-size:13px">$c$<br><input type="number" id="fac" value="2" step="0.5" min="0.5" max="7"></label>
+      <label style="font-size:13px">$d$<br><input type="number" id="fad" value="4" step="0.5" min="0.5" max="7"></label>
+    </div>
+    <label style="font-size:13px;display:flex;align-items:center;gap:6px;cursor:pointer;margin-bottom:12px">
+      <input type="checkbox" id="fashw" onchange="fadraw()"> show slivers
+    </label>
+    <div style="font-size:12px;color:var(--tx2);line-height:1.9" id="faalg"></div>
+  </div>
+</div>
+<figcaption>Enable "show slivers" to see the decomposition: two amber rectangles (each area $bc$), two coral triangles (each $\tfrac12 ac$), two purple triangles (each $\tfrac12 bd$). Their total plus the green parallelogram equals the bounding box — and the algebra cancels to $ad - bc$.</figcaption>
+</figure>
+
+<p class="fwd">Now we have the collapse-detector. Point it at $A - \lambda I$.</p>
+</section>
+
+<!-- ═══ CHARACTERISTIC EQUATION ═══ -->
+<section id="characteristic">
+<h2>The characteristic equation</h2>
+<p>We need $\det(A - \lambda I) = 0$. Compute the determinant for $A = \begin{pmatrix}a&b\\c&d\end{pmatrix}$:</p>
+$$\det\begin{pmatrix}a-\lambda&b\\c&d-\lambda\end{pmatrix} = (a-\lambda)(d-\lambda) - bc = \lambda^2 - (a+d)\lambda + (ad-bc)$$
+<p>The two coefficients have standard names. The sum of diagonal entries $a+d$ is the <strong>trace</strong>, written $\operatorname{tr}(A)$. The expression $ad-bc$ is the <strong>determinant</strong>, $\det(A)$. Setting the whole expression to zero gives the <strong>characteristic equation</strong>:</p>
+$$\lambda^2 - \operatorname{tr}(A)\,\lambda + \det(A) = 0$$
+<p>Solve with the quadratic formula:</p>
+$$\lambda = \frac{\operatorname{tr}(A) \pm \sqrt{\,\operatorname{tr}(A)^2 - 4\det(A)}}{2}$$
+<p>Two eigenvalues, in general. They're real only when the discriminant $\operatorname{tr}^2 - 4\det \geq 0$. That's why the rotate-90° matrix has none: its trace is $0$, determinant is $1$, discriminant is $-4$.</p>
+<p>Once you have an eigenvalue $\lambda$, substitute it into the top row of $(A - \lambda I)\mathbf{v} = \mathbf{0}$. Write $\mathbf{v} = (x, y)^\top$: the equation is $(a-\lambda)x + by = 0$, giving $y = \frac{\lambda - a}{b}\,x$. The bottom row gives the same constraint — it <em>must</em>, because choosing $\lambda$ to make $\det(A-\lambda I)=0$ forces the rows to be proportional. Pick $x = b$ and the eigenvector is $(b,\,\lambda - a)$. Any scalar multiple also works. The eigenvalue defines a <em>line</em>, not a single arrow — an eigenspace.</p>
+<p><strong>Verification.</strong> For $A = \begin{pmatrix}2&1\\1&2\end{pmatrix}$: $\operatorname{tr} = 4$, $\det = 3$, so $\lambda^2 - 4\lambda + 3 = (\lambda-1)(\lambda-3) = 0$, giving $\lambda_1 = 3,\,\lambda_2 = 1$. Eigenvectors: $\mathbf{v}_1 = (1, 3-2) = (1,1)$ and $\mathbf{v}_2 = (1, 1-2) = (1,-1)$. Check: $\begin{pmatrix}2&1\\1&2\end{pmatrix}\begin{pmatrix}1\\1\end{pmatrix} = \begin{pmatrix}3\\3\end{pmatrix} = 3\begin{pmatrix}1\\1\end{pmatrix}$ ✓</p>
+
+<figure>
+<h2 class="sr-only">Characteristic polynomial finder. Edit the matrix to see the parabola of the characteristic polynomial with eigenvalue roots marked, and the eigenvector directions on a coordinate plane.</h2>
+<div style="display:flex;flex-wrap:wrap;gap:20px;align-items:flex-start">
+  <div style="min-width:160px">
+    <div style="font-size:13px;color:var(--tx2);margin-bottom:6px">Matrix $A$</div>
+    <div class="mwrap" style="margin-bottom:10px">
+      <span class="mbk">[</span>
+      <div class="mgrid">
+        <input type="number" id="v4a" value="2" step="0.5">
+        <input type="number" id="v4b" value="1" step="0.5">
+        <input type="number" id="v4c" value="1" step="0.5">
+        <input type="number" id="v4d" value="2" step="0.5">
+      </div>
+      <span class="mbk">]</span>
+    </div>
+    <div class="srow" style="flex-direction:column;gap:5px">
+      <div class="sc">$\operatorname{tr}(A) =$ <b id="v4tr">—</b></div>
+      <div class="sc">$\det(A) =$ <b id="v4dt">—</b></div>
+      <div class="sc">discriminant $=$ <b id="v4ds">—</b></div>
+      <div class="sc">$\lambda_1, \lambda_2 =$ <b id="v4lv">—</b></div>
+    </div>
+  </div>
+  <div>
+    <div style="font-size:12px;color:var(--tx3);margin-bottom:3px">$f(\lambda) = \lambda^2 - \operatorname{tr}\cdot\lambda + \det$</div>
+    <svg id="v4para" viewBox="0 0 240 175" width="240" style="max-width:100%;display:block;border:1px solid var(--br);border-radius:8px" role="img">
+      <title>Characteristic polynomial parabola</title><desc>Graph of the characteristic polynomial. Where it crosses the horizontal axis are the eigenvalues.</desc>
+    </svg>
+  </div>
+  <div>
+    <div style="font-size:12px;color:var(--tx3);margin-bottom:3px">eigenvector lines + image of unit circle</div>
+    <svg id="v4pln" viewBox="0 0 200 200" width="200" style="max-width:100%;display:block;border:1px solid var(--br);border-radius:8px" role="img">
+      <title>Eigenvector directions on a plane</title><desc>The dashed lines show the eigenvector directions. The faint ellipse shows the image of the unit circle under A — its axes align with the eigenvectors when A is symmetric.</desc>
+    </svg>
+  </div>
+</div>
+<figcaption>Try $a=0,b=-1,c=1,d=0$ (rotate 90°) — the parabola never crosses the axis, confirming no real eigenvalues. Try $a=3,b=0,c=0,d=1$ — roots at $\lambda=3$ and $\lambda=1$, eigenvectors along the axes.</figcaption>
+</figure>
+
+<p class="fwd">There's one more thing worth feeling before we use this: what happens when you apply the same matrix again and again.</p>
+</section>
+
+<!-- ═══ POWER ITERATION ═══ -->
+<section id="power">
+<h2>Repetition reveals the dominant direction</h2>
+<p>Write any starting vector as a blend of the two eigenvectors: $\mathbf{v}_0 = \alpha\,\mathbf{e}_1 + \beta\,\mathbf{e}_2$. Apply $A$ once: each component is multiplied by its eigenvalue. Apply it $k$ times:</p>
+$$A^k\mathbf{v}_0 = \alpha\lambda_1^k\,\mathbf{e}_1 + \beta\lambda_2^k\,\mathbf{e}_2$$
+<p>If $|\lambda_1| > |\lambda_2|$, then $\lambda_1^k$ grows faster. The $\mathbf{e}_1$ component dominates, and the direction of $A^k\mathbf{v}_0$ swings toward $\mathbf{e}_1$, locking on. The eigenvector with the largest absolute eigenvalue is <em>magnetic</em>. This is called <strong>power iteration</strong>.</p>
+
+<figure>
+<h2 class="sr-only">Power iteration visualisation. Drag a starting vector then step or auto-run to watch it converge to the dashed dominant eigenvector.</h2>
+<div class="two">
+  <svg id="v5svg" viewBox="0 0 400 380" width="400" style="max-width:100%;display:block;touch-action:none;cursor:crosshair" role="img">
+    <title>Power iteration plane</title><desc>The blue arrow shows the current direction after repeated matrix multiplication. The dashed line is the dominant eigenvector. The fading trail shows the convergence history.</desc>
+  </svg>
+  <div>
+    <div style="font-size:13px;color:var(--tx2);margin-bottom:6px">Matrix $A$</div>
+    <div class="mwrap" style="margin-bottom:10px">
+      <span class="mbk">[</span>
+      <div class="mgrid">
+        <input type="number" id="v5a" value="2" step="0.5">
+        <input type="number" id="v5b" value="1" step="0.5">
+        <input type="number" id="v5c" value="1" step="0.5">
+        <input type="number" id="v5d" value="3" step="0.5">
+      </div>
+      <span class="mbk">]</span>
+    </div>
+    <div class="ctrl" style="margin-bottom:12px">
+      <button onclick="v5step()">step</button>
+      <button id="v5ab" onclick="v5auto()">auto-run</button>
+      <button onclick="v5reset()">reset</button>
+    </div>
+    <div class="srow" style="flex-direction:column;gap:5px">
+      <div class="sc">Steps: <b id="v5st">0</b></div>
+      <div class="sc">Angle to dominant eigvec: <b id="v5ag">—</b></div>
+      <div class="sc">Growth this step: <b id="v5gr">—</b></div>
+    </div>
+  </div>
+</div>
+<figcaption>Drag the blue dot to set a starting direction, then step or auto-run. The vector converges to the dashed eigenvector regardless of starting point — unless you start exactly on the minor eigenvector (try the perpendicular direction).</figcaption>
+</figure>
+
+<p class="fwd">That "direction everything piles onto" is exactly what we need to find the grain of real data.</p>
+</section>
+
+<!-- ═══ FISH ═══ -->
+<section id="fish">
+<h2>The hidden axis in fish data</h2>
+<p>Measure 30 fish: length in centimetres and weight in arbitrary units. Plot each fish as a point $(L, W)$ and you get a tilted blob — bigger fish tend to be both longer and heavier, so the cloud has a <em>grain</em>. The question is: what single direction best captures how these fish vary?</p>
+<p>Build a matrix that captures the shape of the cloud. First, centre the data by subtracting the mean of each measurement. Then form the <strong>spread matrix</strong> — formally the covariance matrix:</p>
+$$C = \begin{pmatrix}\operatorname{var}(L) & \operatorname{cov}(L,W) \\ \operatorname{cov}(L,W) & \operatorname{var}(W)\end{pmatrix}$$
+<p>Each entry has a plain meaning: $\operatorname{var}(L)$ is how much lengths vary across fish; $\operatorname{var}(W)$ is how much weights vary; $\operatorname{cov}(L,W)$ is how much they vary <em>together</em> — large and positive here, because longer fish are consistently heavier. $C$ is symmetric, so its eigenvectors are always real and perpendicular.</p>
+<p>Now invoke the power-iteration insight. $C$ stretches space most along the direction of the cloud's grain. Repeatedly apply $C$ to any vector and it piles onto that grain direction — the <strong>dominant eigenvector</strong> $\mathbf{e}_1$. The eigenvalue $\lambda_1$ tells you how much of the total spread lives there: $\lambda_1/(\lambda_1+\lambda_2)\times 100\%$.</p>
+<p>Once the axis is known, each fish gets a <strong>size score</strong> — its projection onto $\mathbf{e}_1$. Two fish with matching scores are the same size archetype: compatible. A fish's perpendicular distance from the axis is its "unusualness": how much it deviates from the natural weight-for-length relationship.</p>
+<p>Rotate the line below until you've captured as much spread as possible by hand — then click <strong>reveal eigenvector</strong> to see whether you found it. After revealing, click any fish to find its most compatible partner.</p>
+
+<figure>
+<h2 class="sr-only">Fish size-axis explorer. A scatter plot of 30 fish by length and weight. Rotate a line to find the direction of maximum spread, then reveal the dominant eigenvector of the spread matrix. Click a fish to find its most compatible partner by projected size score.</h2>
+<svg id="v6svg" viewBox="0 0 540 340" width="540" style="max-width:100%;display:block;touch-action:none" role="img">
+  <title>Fish length vs weight scatter</title><desc>Scatter plot of 30 fish measurements with a rotatable axis line. Rotating the axis to align with the cloud's grain maximises the spread captured — that direction is the dominant eigenvector.</desc>
+</svg>
+<div class="ctrl" style="margin-top:10px">
+  <label style="font-size:13px">axis angle</label>
+  <input type="range" id="v6ang" min="0" max="179" value="45" oninput="v6draw()">
+  <span style="font-size:13px;min-width:34px;text-align:right" id="v6alab">45°</span>
+  <button class="hi" onclick="v6reveal()">reveal eigenvector</button>
+  <button onclick="v6reset()">reset</button>
+</div>
+<div style="margin-top:10px">
+  <div style="font-size:13px;color:var(--tx2)">Spread captured along this axis:</div>
+  <div class="bar-w"><div class="bar-f" id="v6bar" style="width:0%"></div></div>
+  <div style="font-size:13px;color:var(--tx2);margin-top:3px"><b id="v6sv">—</b> of <span id="v6tv">—</span> total (<b id="v6pv">—</b>)</div>
+</div>
+<div class="sc" id="v6stats" style="display:none;margin-top:10px;font-size:13px;line-height:1.8"></div>
+<div class="cbox" id="v6cbox" style="display:none"></div>
+<figcaption>The axis you find by hand and the eigenvector the algorithm computes are the same — geometry and algebra agree. After revealing, click any fish glyph to see its size score and compatible partner.</figcaption>
+</figure>
+
+<p>The axis was never labelled in the data. No one encoded it. But it was the dominant eigenvector all along — forced by the same three axioms we started with.</p>
+</section>
+
+<!-- ═══ RECAP ═══ -->
+<section id="recap">
+<h2>The chain, closed</h2>
+<p>We started from the definition of a coordinate system. A matrix relocates the reference arrows; every vector follows. A few special directions — eigenvectors — are only stretched, never rotated: $A\mathbf{v} = \lambda\mathbf{v}$. To find them, we rearranged the equation into a collapse condition, then built the determinant from three axioms (multilinear, alternating, normalised), which forced the formula $ad - bc$ and its geometric meaning as a signed area scale factor. The resulting characteristic equation yielded the eigenvalues; back-substitution gave the eigenspaces; power iteration explained why the dominant eigenvector emerges from repeated application. The fish data closed the loop: a hidden axis, invisible in the raw measurements, revealed as the dominant eigenvector of the spread matrix.</p>
+<p>The technique of ranking all eigenvectors of the spread matrix by eigenvalue — keeping the top $k$ to compress data while retaining as much variation as possible — is called <strong>Principal Component Analysis (PCA)</strong>. That's where this chain leads next.</p>
+<p style="margin-top:8px">Want to see how every idea here depends on the ones before it? Explore the <a href="concept-map.html">interactive concept map</a> — a dependency constellation you can trace from any concept down to its roots.</p>
+</section>
+
+</main>
+<footer>Vanilla JS + KaTeX · no frameworks · works offline · <a href="https://katex.org">KaTeX</a> for maths typesetting</footer>
+
+<script>
+/* ═══════════════════════════════════════════════════
+   SHARED UTILITIES
+═══════════════════════════════════════════════════ */
+const r2=n=>Math.round(n*100)/100;
+const fmt=n=>{const x=r2(n);return Object.is(x,-0)?'0':String(x);};
+const fmtN=(n,dp=2)=>n.toFixed(dp);
+const matVec=(m,v)=>[m.a*v[0]+m.b*v[1],m.c*v[0]+m.d*v[1]];
+const det2=m=>m.a*m.d-m.b*m.c;
+
+function eigGeneral(m){
+  const tr=m.a+m.d, dt=det2(m), disc=tr*tr-4*dt;
+  if(disc<0)return{real:false,tr,dt,disc};
+  const s=Math.sqrt(disc),l1=(tr+s)/2,l2=(tr-s)/2;
+  const ev=l=>{
+    let v=Math.abs(m.b)>1e-9?[m.b,l-m.a]:Math.abs(m.c)>1e-9?[l-m.d,m.c]:(Math.abs(m.a-l)<1e-9?[1,0]:[0,1]);
+    const n=Math.hypot(v[0],v[1])||1;return[v[0]/n,v[1]/n];
+  };
+  return{real:true,l1,l2,v1:ev(l1),v2:ev(l2),tr,dt,disc};
+}
+
+function eigSym(a,b,d){
+  const tr=a+d,mid=tr/2,disc=Math.hypot((a-d)/2,b);
+  const l1=mid+disc,l2=mid-disc;
+  let v1=Math.abs(b)>1e-9?[b,l1-a]:(a>=d?[1,0]:[0,1]);
+  const n=Math.hypot(v1[0],v1[1])||1;v1=[v1[0]/n,v1[1]/n];
+  return{l1,l2,v1,v2:[-v1[1],v1[0]]};
+}
+
+function arw(x1,y1,x2,y2,clr,w=2.6){
+  const dx=x2-x1,dy=y2-y1,L=Math.hypot(dx,dy);
+  if(L<3)return'';
+  const ux=dx/L,uy=dy/L,hs=9;
+  const tx=x2-ux*hs,ty=y2-uy*hs;
+  const ax=tx-uy*hs*.42,ay=ty+ux*hs*.42;
+  const bx=tx+uy*hs*.42,by=ty-ux*hs*.42;
+  return`<line x1="${x1}" y1="${y1}" x2="${tx}" y2="${ty}" stroke="${clr}" stroke-width="${w}" stroke-linecap="round"/>`+
+        `<polygon points="${x2},${y2} ${ax},${ay} ${bx},${by}" fill="${clr}"/>`;
+}
+
+/* read a CSS custom property from :root */
+const cv=v=>getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const cl=()=>({a1:cv('--a1'),a2:cv('--a2'),a3:cv('--a3'),a4:cv('--a4'),a5:cv('--a5'),
+               tx2:cv('--tx2'),tx3:cv('--tx3'),br:cv('--br'),grid:cv('--grid'),sf2:cv('--sf2')});
+
+/* ═══════════════════════════════════════════════════
+   VIZ 1 — TRANSFORMATION EXPLORER
+═══════════════════════════════════════════════════ */
+(function(){
+  const svg=document.getElementById('v1svg');
+  const W=440,H=440,cx=220,cy=220,sc=28;
+  const SX=x=>cx+x*sc, SY=y=>cy-y*sc;
+  let vx=1,vy=1;
+  const gm=()=>({a:+document.getElementById('v1a').value||0,b:+document.getElementById('v1b').value||0,
+                 c:+document.getElementById('v1c').value||0,d:+document.getElementById('v1d').value||0});
+
+  window.v1set=(a,b,c,d)=>{
+    ['v1a','v1b','v1c','v1d'].forEach((id,i)=>document.getElementById(id).value=[a,b,c,d][i]);
+    draw();
+  };
+  ['v1a','v1b','v1c','v1d'].forEach(id=>document.getElementById(id).addEventListener('input',draw));
+
+  function draw(){
+    const m=gm(),c=cl(); let h='';
+    /* transformed grid */
+    for(let k=-7;k<=7;k++){
+      const ka=k===0,sw=ka?'0.9':'0.45',op=ka?'0.55':'0.3';
+      /* vertical line x=k: t∈[-9,9] */
+      const p0x=k*m.a+(-9)*m.b,p0y=k*m.c+(-9)*m.d,p1x=k*m.a+9*m.b,p1y=k*m.c+9*m.d;
+      h+=`<line x1="${SX(p0x)}" y1="${SY(p0y)}" x2="${SX(p1x)}" y2="${SY(p1y)}" stroke="${c.a1}" stroke-width="${sw}" opacity="${op}"/>`;
+      /* horizontal line y=k */
+      const q0x=(-9)*m.a+k*m.b,q0y=(-9)*m.c+k*m.d,q1x=9*m.a+k*m.b,q1y=9*m.c+k*m.d;
+      h+=`<line x1="${SX(q0x)}" y1="${SY(q0y)}" x2="${SX(q1x)}" y2="${SY(q1y)}" stroke="${c.a1}" stroke-width="${sw}" opacity="${op}"/>`;
+    }
+    /* axes */
+    h+=`<line x1="0" y1="${cy}" x2="${W}" y2="${cy}" stroke="${c.grid}" stroke-width="0.7"/>`;
+    h+=`<line x1="${cx}" y1="0" x2="${cx}" y2="${H}" stroke="${c.grid}" stroke-width="0.7"/>`;
+    /* new basis î, ĵ */
+    h+=arw(cx,cy,SX(m.a),SY(m.c),c.a3,2.3);
+    h+=arw(cx,cy,SX(m.b),SY(m.d),c.a4,2.3);
+    /* Av then v (v on top) */
+    const av=matVec(m,[vx,vy]);
+    h+=arw(cx,cy,SX(av[0]),SY(av[1]),c.a2,2.8);
+    h+=arw(cx,cy,SX(vx),SY(vy),c.a1,2.8);
+    /* drag handle */
+    h+=`<circle cx="${SX(vx)}" cy="${SY(vy)}" r="9" fill="${c.a1}" fill-opacity=".16" stroke="${c.a1}" stroke-width="1.5" style="cursor:grab"/>`;
+    svg.innerHTML=h;
+    /* readout */
+    document.getElementById('v1rd').textContent=`v = (${fmt(vx)}, ${fmt(vy)})    Av = (${fmt(av[0])}, ${fmt(av[1])})`;
+    /* eigen detection */
+    const vl=Math.hypot(vx,vy),al=Math.hypot(av[0],av[1]);
+    const cross=Math.abs(vx*av[1]-vy*av[0]);
+    const eb=document.getElementById('v1eb');
+    if(vl>0.3&&al>0.05&&cross<0.11*vl*al){
+      const lam=(vx*av[0]+vy*av[1])/(vl*vl);
+      eb.className='ebox found';
+      eb.textContent=`Eigenvector detected — Av = ${fmt(lam)}·v, so λ = ${fmt(lam)}`;
+    } else {
+      eb.className='ebox';
+      eb.textContent=al<0.05?'Av ≈ 0 — try a less singular matrix or different direction.':'Drag the blue arrow until orange lines up — then you\'ve found an eigenvector.';
+    }
+  }
+
+  let drag=false;
+  function ptSVG(e){
+    const r=svg.getBoundingClientRect();
+    return[(e.clientX-r.left)*(W/r.width),(e.clientY-r.top)*(H/r.height)];
+  }
+  svg.addEventListener('pointerdown',e=>{drag=true;svg.setPointerCapture(e.pointerId);mv(e);});
+  svg.addEventListener('pointermove',e=>{if(!drag)return;mv(e);e.preventDefault();});
+  svg.addEventListener('pointerup',()=>drag=false);
+  svg.addEventListener('pointercancel',()=>drag=false);
+  function mv(e){
+    const[px,py]=ptSVG(e);
+    let x=Math.round(((px-cx)/sc)*2)/2,y=Math.round(((cy-py)/sc)*2)/2;
+    x=Math.max(-7,Math.min(7,x));y=Math.max(-7,Math.min(7,y));
+    if(x===0&&y===0)x=0.5;
+    vx=x;vy=y;draw();
+  }
+  draw();
+})();
+
+/* ═══════════════════════════════════════════════════
+   VIZ 3 — UNIT SQUARE → PARALLELOGRAM
+═══════════════════════════════════════════════════ */
+(function(){
+  const svg=document.getElementById('v3svg');
+  const W=380,H=340;
+  const gm=()=>({a:+document.getElementById('v3a').value||0,b:+document.getElementById('v3b').value||0,
+                 c:+document.getElementById('v3c').value||0,d:+document.getElementById('v3d').value||0});
+  let anim=null;
+
+  window.v3set=(a,b,c,d)=>{
+    ['v3a','v3b','v3c','v3d'].forEach((id,i)=>document.getElementById(id).value=[a,b,c,d][i]);
+    draw();
+  };
+  ['v3a','v3b','v3c','v3d'].forEach(id=>document.getElementById(id).addEventListener('input',draw));
+  document.getElementById('v3t').addEventListener('input',draw);
+
+  window.v3play=()=>{
+    if(anim){clearInterval(anim);anim=null;return;}
+    document.getElementById('v3t').value=0;let v=0;
+    anim=setInterval(()=>{v+=1.5;if(v>=100){v=100;clearInterval(anim);anim=null;}
+      document.getElementById('v3t').value=v;draw();},16);
+  };
+
+  function draw(){
+    const m=gm(),t=+document.getElementById('v3t').value/100,c=cl();
+    const ix=1-t+t*m.a,iy=t*m.c,jx=t*m.b,jy=1-t+t*m.d;
+    /* auto-scale */
+    const xs=[0,ix,jx,ix+jx,1,0,1],ys=[0,iy,jy,iy+jy,0,1,1];
+    const xmn=Math.min(...xs)-.5,xmx=Math.max(...xs)+.5;
+    const ymn=Math.min(...ys)-.5,ymx=Math.max(...ys)+.5;
+    const pad=22,sc=Math.min((W-2*pad)/(xmx-xmn),(H-2*pad)/(ymx-ymn));
+    const ox=pad-xmn*sc,oy=H-pad+ymn*sc;
+    const SX=x=>ox+x*sc,SY=y=>oy-y*sc;
+    let h='';
+    /* grid */
+    for(let k=Math.floor(xmn)-1;k<=Math.ceil(xmx)+1;k++){
+      h+=`<line x1="${SX(k)}" y1="${SY(ymn-1)}" x2="${SX(k)}" y2="${SY(ymx+1)}" stroke="${c.grid}" stroke-width="0.5"/>`;
+    }
+    for(let k=Math.floor(ymn)-1;k<=Math.ceil(ymx)+1;k++){
+      h+=`<line x1="${SX(xmn-1)}" y1="${SY(k)}" x2="${SX(xmx+1)}" y2="${SY(k)}" stroke="${c.grid}" stroke-width="0.5"/>`;
+    }
+    h+=`<line x1="${SX(xmn)}" y1="${SY(0)}" x2="${SX(xmx)}" y2="${SY(0)}" stroke="${c.br}" stroke-width="0.8"/>`;
+    h+=`<line x1="${SX(0)}" y1="${SY(ymn)}" x2="${SX(0)}" y2="${SY(ymx)}" stroke="${c.br}" stroke-width="0.8"/>`;
+    /* unit square ghost at t=0 */
+    h+=`<polygon points="${SX(0)},${SY(0)} ${SX(1)},${SY(0)} ${SX(1)},${SY(1)} ${SX(0)},${SY(1)}" fill="${c.a3}" fill-opacity=".08" stroke="${c.a3}" stroke-width="0.8" stroke-dasharray="4 3"/>`;
+    /* parallelogram */
+    const area=ix*jy-jx*iy;
+    const fop=Math.abs(area)<0.03?.1:.35;
+    h+=`<polygon points="${SX(0)},${SY(0)} ${SX(ix)},${SY(iy)} ${SX(ix+jx)},${SY(iy+jy)} ${SX(jx)},${SY(jy)}" fill="${c.a3}" fill-opacity="${fop}" stroke="${c.a3}" stroke-width="1.6"/>`;
+    /* basis arrows */
+    h+=arw(SX(0),SY(0),SX(ix),SY(iy),c.a1,2.5);
+    h+=arw(SX(0),SY(0),SX(jx),SY(jy),c.a4,2.5);
+    svg.innerHTML=h;
+    /* stats */
+    document.getElementById('v3area').textContent=fmt(area);
+    const nt=document.getElementById('v3note');
+    if(Math.abs(area)<.04){nt.style.display='';nt.textContent='collapsed — zero area';}
+    else if(area<0){nt.style.display='';nt.textContent='orientation flipped';}
+    else nt.style.display='none';
+  }
+  draw();
+})();
+
+/* ═══════════════════════════════════════════════════
+   FIG A — BOX SUBTRACTION PROOF
+═══════════════════════════════════════════════════ */
+(function(){
+  const svg=document.getElementById('fasvg');
+  const W=360,H=320;
+  ['faa','fab','fac','fad'].forEach(id=>document.getElementById(id).addEventListener('input',fadraw));
+
+  function fadraw(){
+    let a=+document.getElementById('faa').value,b=+document.getElementById('fab').value;
+    let cc=+document.getElementById('fac').value,d=+document.getElementById('fad').value;
+    a=Math.max(.5,a);b=Math.max(.5,b);cc=Math.max(.5,cc);d=Math.max(.5,d);
+    const show=document.getElementById('fashw').checked;
+    const c=cl();
+    const pad=26,sc=Math.min((W-2*pad)/(a+b),(H-2*pad)/(cc+d));
+    const ox=pad,oy=H-pad;
+    const SX=x=>ox+x*sc,SY=y=>oy-y*sc;
+    let h='';
+    /* bounding box */
+    h+=`<rect x="${SX(0)}" y="${SY(cc+d)}" width="${(a+b)*sc}" height="${(cc+d)*sc}" fill="none" stroke="${c.br}" stroke-width="1" stroke-dasharray="5 3"/>`;
+    if(show){
+      /* amber: R1=(a,0)→(a+b,c) and R2=(0,d)→(b,c+d) */
+      h+=`<rect x="${SX(a)}" y="${SY(cc)}" width="${b*sc}" height="${cc*sc}" fill="${c.a5}" fill-opacity=".55" stroke="${c.a5}" stroke-width=".5"/>`;
+      h+=`<rect x="${SX(0)}" y="${SY(cc+d)}" width="${b*sc}" height="${cc*sc}" fill="${c.a5}" fill-opacity=".55" stroke="${c.a5}" stroke-width=".5"/>`;
+      /* coral: T1=(0,0),(a,0),(a,c) and T2=(b,d),(b,c+d),(a+b,c+d) */
+      h+=`<polygon points="${SX(0)},${SY(0)} ${SX(a)},${SY(0)} ${SX(a)},${SY(cc)}" fill="${c.a2}" fill-opacity=".45" stroke="${c.a2}" stroke-width=".5"/>`;
+      h+=`<polygon points="${SX(b)},${SY(d)} ${SX(b)},${SY(cc+d)} ${SX(a+b)},${SY(cc+d)}" fill="${c.a2}" fill-opacity=".45" stroke="${c.a2}" stroke-width=".5"/>`;
+      /* purple: T3=(a,c),(a+b,c),(a+b,c+d) and T4=(0,0),(b,d),(0,d) */
+      h+=`<polygon points="${SX(a)},${SY(cc)} ${SX(a+b)},${SY(cc)} ${SX(a+b)},${SY(cc+d)}" fill="${c.a4}" fill-opacity=".45" stroke="${c.a4}" stroke-width=".5"/>`;
+      h+=`<polygon points="${SX(0)},${SY(0)} ${SX(b)},${SY(d)} ${SX(0)},${SY(d)}" fill="${c.a4}" fill-opacity=".45" stroke="${c.a4}" stroke-width=".5"/>`;
+    }
+    /* parallelogram */
+    h+=`<polygon points="${SX(0)},${SY(0)} ${SX(a)},${SY(cc)} ${SX(a+b)},${SY(cc+d)} ${SX(b)},${SY(d)}" fill="${c.a3}" fill-opacity="${show?.6:.38}" stroke="${c.a3}" stroke-width="1.6"/>`;
+    /* dimension ticks */
+    const lc=c.tx3,fs=10;
+    h+=`<text x="${SX(a/2)}" y="${SY(0)+13}" text-anchor="middle" font-size="${fs}" fill="${lc}" font-family="sans-serif">a=${fmt(a)}</text>`;
+    h+=`<text x="${SX(a+b/2)}" y="${SY(0)+13}" text-anchor="middle" font-size="${fs}" fill="${lc}" font-family="sans-serif">b=${fmt(b)}</text>`;
+    h+=`<text x="${SX(0)-4}" y="${SY(cc/2)+3}" text-anchor="end" font-size="${fs}" fill="${lc}" font-family="sans-serif">c=${fmt(cc)}</text>`;
+    h+=`<text x="${SX(0)-4}" y="${SY(cc+d/2)+3}" text-anchor="end" font-size="${fs}" fill="${lc}" font-family="sans-serif">d=${fmt(d)}</text>`;
+    svg.innerHTML=h;
+    /* algebra */
+    const bbox=(a+b)*(cc+d),bc2=2*b*cc,ac=a*cc,bd=b*d,res=a*d-b*cc;
+    document.getElementById('faalg').innerHTML=
+      `<b>Bounding box</b>: (${fmt(a)}+${fmt(b)})×(${fmt(cc)}+${fmt(d)}) = <b>${fmt(bbox)}</b><br>`+
+      `−2bc = 2×${fmt(b)}×${fmt(cc)} = <b>${fmt(bc2)}</b><br>`+
+      `−ac = ${fmt(a)}×${fmt(cc)} = <b>${fmt(ac)}</b><br>`+
+      `−bd = ${fmt(b)}×${fmt(d)} = <b>${fmt(bd)}</b><br>`+
+      `= ${fmt(bbox)}−${fmt(bc2)}−${fmt(ac)}−${fmt(bd)} = <b>ad−bc = ${fmt(res)}</b>`;
+  };
+    window.fadraw=fadraw;
+  fadraw();
+})();
+
+/* ═══════════════════════════════════════════════════
+   VIZ 4 — CHARACTERISTIC POLYNOMIAL
+═══════════════════════════════════════════════════ */
+(function(){
+  const pSVG=document.getElementById('v4para'),lSVG=document.getElementById('v4pln');
+  const PW=240,PH=175,LW=200,LH=200;
+  const gm=()=>({a:+document.getElementById('v4a').value||0,b:+document.getElementById('v4b').value||0,
+                 c:+document.getElementById('v4c').value||0,d:+document.getElementById('v4d').value||0});
+  ['v4a','v4b','v4c','v4d'].forEach(id=>document.getElementById(id).addEventListener('input',v4draw));
+
+  function v4draw(){
+    const m=gm(),e=eigGeneral(m),c=cl();
+    document.getElementById('v4tr').textContent=fmt(m.a+m.d);
+    document.getElementById('v4dt').textContent=fmt(det2(m));
+    document.getElementById('v4ds').textContent=fmt(e.disc);
+    document.getElementById('v4lv').textContent=e.real?`${fmt(e.l1)},  ${fmt(e.l2)}`:'complex — no real eigenvalues';
+
+    /* ─ parabola ─ */
+    const tr=m.a+m.d,dt=det2(m);
+    const LA=-7,LB=7,NS=120;
+    const fs=[]; for(let i=0;i<=NS;i++){const l=LA+(LB-LA)*i/NS;fs.push(l*l-tr*l+dt);}
+    let fmn=Math.min(...fs),fmx=Math.max(...fs);
+    const fp=(fmx-fmn)*.14+.4; fmn-=fp;fmx+=fp;
+    const pm=18;
+    const pX=l=>pm+(l-LA)/(LB-LA)*(PW-2*pm);
+    const pY=f=>PH-pm-(f-fmn)/(fmx-fmn)*(PH-2*pm);
+    let ph='';
+    const y0=pY(0);
+    if(y0>0&&y0<PH)ph+=`<line x1="${pm}" y1="${y0}" x2="${PW-pm}" y2="${y0}" stroke="${c.tx3}" stroke-width=".7"/>`;
+    ph+=`<text x="${PW-pm+1}" y="${Math.max(10,Math.min(PH-4,y0+4))}" font-size="9" fill="${c.tx3}" font-family="sans-serif">λ</text>`;
+    const pts=fs.map((f,i)=>`${pX(LA+(LB-LA)*i/NS).toFixed(1)},${pY(f).toFixed(1)}`).join(' ');
+    ph+=`<polyline points="${pts}" fill="none" stroke="${e.real?c.a1:c.a2}" stroke-width="1.8" stroke-linejoin="round"/>`;
+    if(e.real){
+      [e.l1,e.l2].forEach(l=>{
+        if(l<LA||l>LB)return;
+        ph+=`<circle cx="${pX(l)}" cy="${y0}" r="4" fill="${c.a1}"/>`;
+        const lx=pX(l),above=lx>PW*.6;
+        ph+=`<text x="${lx}" y="${y0+(above?14:-6)}" text-anchor="middle" font-size="10" fill="${c.a1}" font-family="sans-serif">${fmt(l)}</text>`;
+      });
+    } else {
+      ph+=`<text x="${PW/2}" y="${PH/2+4}" text-anchor="middle" font-size="11" fill="${c.a2}" font-family="sans-serif">no real roots</text>`;
+    }
+    pSVG.innerHTML=ph;
+
+    /* ─ eigenvector plane ─ */
+    const lc=LW/2,sc2=32;
+    const LX=x=>lc+x*sc2,LY=y=>lc-y*sc2;
+    let lh='';
+    lh+=`<line x1="0" y1="${lc}" x2="${LW}" y2="${lc}" stroke="${c.grid}" stroke-width=".8"/>`;
+    lh+=`<line x1="${lc}" y1="0" x2="${lc}" y2="${LH}" stroke="${c.grid}" stroke-width=".8"/>`;
+    /* unit circle image */
+    const ell=[];
+    for(let i=0;i<=64;i++){const t=2*Math.PI*i/64;const v=matVec(m,[Math.cos(t),Math.sin(t)]);ell.push(`${LX(v[0]).toFixed(1)},${LY(v[1]).toFixed(1)}`);}
+    lh+=`<polygon points="${ell.join(' ')}" fill="${c.a1}" fill-opacity=".08" stroke="${c.a1}" stroke-width=".9"/>`;
+    /* eigenvectors */
+    if(e.real){
+      [[e.v1,c.a1],[e.v2,c.a2]].forEach(([v,col])=>{
+        const ext=5.2;
+        lh+=`<line x1="${LX(-v[0]*ext)}" y1="${LY(-v[1]*ext)}" x2="${LX(v[0]*ext)}" y2="${LY(v[1]*ext)}" stroke="${col}" stroke-width="1.8" stroke-dasharray="5 3"/>`;
+      });
+    }
+    lSVG.innerHTML=lh;
+  }
+  v4draw();
+  window.v4draw=v4draw;
+})();
+
+/* ═══════════════════════════════════════════════════
+   VIZ 5 — POWER ITERATION
+═══════════════════════════════════════════════════ */
+(function(){
+  const svg=document.getElementById('v5svg');
+  const W=400,H=380,cx=200,cy=190,sc=36;
+  const SX=x=>cx+x*sc,SY=y=>cy-y*sc;
+  let curV=[1/Math.SQRT2,1/Math.SQRT2],hist=[],steps=0,anim=null;
+  const gm=()=>({a:+document.getElementById('v5a').value||0,b:+document.getElementById('v5b').value||0,
+                 c:+document.getElementById('v5c').value||0,d:+document.getElementById('v5d').value||0});
+  ['v5a','v5b','v5c','v5d'].forEach(id=>document.getElementById(id).addEventListener('input',()=>{v5reset();}));
+
+  window.v5reset=()=>{
+    if(anim){clearInterval(anim);anim=null;document.getElementById('v5ab').textContent='auto-run';}
+    curV=[1/Math.SQRT2,1/Math.SQRT2];hist=[];steps=0;
+    document.getElementById('v5st').textContent=0;
+    document.getElementById('v5ag').textContent='—';
+    document.getElementById('v5gr').textContent='—';
+    draw();
+  };
+
+  window.v5step=()=>{
+    const m=gm(),raw=matVec(m,curV),growth=Math.hypot(raw[0],raw[1]);
+    if(growth<1e-10)return;
+    hist.push([...curV]);if(hist.length>15)hist.shift();
+    curV=[raw[0]/growth,raw[1]/growth];steps++;
+    document.getElementById('v5st').textContent=steps;
+    document.getElementById('v5gr').textContent='×'+fmtN(growth,3);
+    const e=eigGeneral(m);
+    if(e.real){
+      const dot=Math.min(1,Math.abs(curV[0]*e.v1[0]+curV[1]*e.v1[1]));
+      document.getElementById('v5ag').textContent=fmtN(Math.acos(dot)*180/Math.PI,2)+'°';
+    } else {
+      document.getElementById('v5ag').textContent='(no real dominant)';
+    }
+    draw();
+  };
+
+  window.v5auto=()=>{
+    if(anim){clearInterval(anim);anim=null;document.getElementById('v5ab').textContent='auto-run';}
+    else{document.getElementById('v5ab').textContent='stop';anim=setInterval(v5step,170);}
+  };
+
+  let drag=false;
+  svg.addEventListener('pointerdown',e=>{drag=true;svg.setPointerCapture(e.pointerId);vmv(e);});
+  svg.addEventListener('pointermove',e=>{if(!drag)return;vmv(e);e.preventDefault();});
+  svg.addEventListener('pointerup',()=>drag=false);
+  svg.addEventListener('pointercancel',()=>drag=false);
+  function vmv(e){
+    const r=svg.getBoundingClientRect();
+    const px=(e.clientX-r.left)*(W/r.width),py=(e.clientY-r.top)*(H/r.height);
+    const wx=(px-cx)/sc,wy=(cy-py)/sc,len=Math.hypot(wx,wy)||1;
+    curV=[wx/len,wy/len];hist=[];steps=0;
+    document.getElementById('v5st').textContent=0;
+    document.getElementById('v5ag').textContent='—';
+    document.getElementById('v5gr').textContent='—';
+    draw();
+  }
+
+  function draw(){
+    const m=gm(),e=eigGeneral(m),c=cl(); let h='';
+    for(let k=-4;k<=4;k++){
+      h+=`<line x1="0" y1="${SY(k)}" x2="${W}" y2="${SY(k)}" stroke="${c.grid}" stroke-width=".5"/>`;
+      h+=`<line x1="${SX(k)}" y1="0" x2="${SX(k)}" y2="${H}" stroke="${c.grid}" stroke-width=".5"/>`;
+    }
+    h+=`<line x1="0" y1="${cy}" x2="${W}" y2="${cy}" stroke="${c.br}" stroke-width=".8"/>`;
+    h+=`<line x1="${cx}" y1="0" x2="${cx}" y2="${H}" stroke="${c.br}" stroke-width=".8"/>`;
+    /* dominant eigvec */
+    if(e.real){
+      const ext=5.2;
+      h+=`<line x1="${SX(-e.v1[0]*ext)}" y1="${SY(-e.v1[1]*ext)}" x2="${SX(e.v1[0]*ext)}" y2="${SY(e.v1[1]*ext)}" stroke="${c.a2}" stroke-width="2" stroke-dasharray="6 4" opacity=".8"/>`;
+    }
+    /* trail */
+    const VL=4.2;
+    hist.forEach((v,i)=>{
+      const op=(i+1)/hist.length*.5;
+      h+=`<line x1="${cx}" y1="${cy}" x2="${SX(v[0]*VL)}" y2="${SY(v[1]*VL)}" stroke="${c.a1}" stroke-width="1.6" opacity="${op.toFixed(2)}" stroke-linecap="round"/>`;
+    });
+    /* current */
+    h+=arw(cx,cy,SX(curV[0]*VL),SY(curV[1]*VL),c.a1,3);
+    h+=`<circle cx="${cx}" cy="${cy}" r="5" fill="${c.a1}"/>`;
+    h+=`<circle cx="${SX(curV[0]*VL)}" cy="${SY(curV[1]*VL)}" r="9" fill="${c.a1}" fill-opacity=".15" stroke="${c.a1}" stroke-width="1.5" style="cursor:grab"/>`;
+    svg.innerHTML=h;
+  }
+  draw();
+})();
+
+/* ═══════════════════════════════════════════════════
+   VIZ 6 — FISH SIZE-AXIS EXPLORER
+═══════════════════════════════════════════════════ */
+(function(){
+  const svg=document.getElementById('v6svg');
+  const SW=540,SH=340,ML=56,MR=20,MT=20,MB=44;
+  const PW=SW-ML-MR,PH=SH-MT-MB;
+
+  /* deterministic fish data */
+  function rng(seed){return()=>{seed|=0;seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+  function gauss(u){let a=Math.max(1e-9,u()),b=u();return Math.sqrt(-2*Math.log(a))*Math.cos(2*Math.PI*b);}
+  const uu=rng(7);
+  const PHI=32*Math.PI/180,ALONG=7.0,PERP=1.6,MEANL=26,MEANW=14;
+  const fish=Array.from({length:30},()=>{
+    const t=gauss(uu)*ALONG,p=gauss(uu)*PERP;
+    return[MEANL+t*Math.cos(PHI)-p*Math.sin(PHI),MEANW+t*Math.sin(PHI)+p*Math.cos(PHI)];
+  });
+
+  /* statistics */
+  const N=fish.length;
+  const mL=fish.reduce((s,f)=>s+f[0],0)/N;
+  const mW=fish.reduce((s,f)=>s+f[1],0)/N;
+  const cA=fish.reduce((s,f)=>s+(f[0]-mL)**2,0)/N;
+  const cD=fish.reduce((s,f)=>s+(f[1]-mW)**2,0)/N;
+  const cB=fish.reduce((s,f)=>s+(f[0]-mL)*(f[1]-mW),0)/N;
+  const EIG=eigSym(cA,cB,cD);
+  const totalVar=EIG.l1+EIG.l2;
+
+  /* scatter bounds */
+  const Ls=fish.map(f=>f[0]),Ws=fish.map(f=>f[1]);
+  const Lmn=Math.min(...Ls)-2.5,Lmx=Math.max(...Ls)+2.5;
+  const Wmn=Math.min(...Ws)-2,Wmx=Math.max(...Ws)+2;
+  const scL=PW/(Lmx-Lmn),scW=PH/(Wmx-Wmn);
+  const PX=L=>ML+(L-Lmn)*scL;
+  const PY=W=>MT+PH-(W-Wmn)*scW;
+
+  let revealed=false,selFish=null;
+
+  function score(f){return(f[0]-mL)*EIG.v1[0]+(f[1]-mW)*EIG.v1[1];}
+  function perp(f){return(f[0]-mL)*(-EIG.v1[1])+(f[1]-mW)*EIG.v1[0];}
+  function varAlong(deg){const t=deg*Math.PI/180,c=Math.cos(t),s=Math.sin(t);return cA*c*c+2*cB*c*s+cD*s*s;}
+
+  /* precompute compatibility once revealed */
+  let compatOf=null;
+  function buildCompat(){
+    compatOf=fish.map((_,i)=>{
+      const sc=score(fish[i]);
+      let best=-1,bd=1e9;
+      fish.forEach((g,j)=>{if(j===i)return;const d=Math.abs(score(g)-sc);if(d<bd){bd=d;best=j;}});
+      return best;
+    });
+  }
+
+  function getAngle(){return+document.getElementById('v6ang').value;}
+
+  function v6draw(){
+    const deg=getAngle();
+    document.getElementById('v6alab').textContent=deg+'°';
+    const va=varAlong(deg),pct=va/totalVar*100;
+    document.getElementById('v6bar').style.width=Math.min(100,pct).toFixed(1)+'%';
+    document.getElementById('v6sv').textContent=fmtN(va,2);
+    document.getElementById('v6tv').textContent=fmtN(totalVar,2);
+    document.getElementById('v6pv').textContent=fmtN(pct,1)+'%';
+    draw();
+  };
+
+  function v6reveal(){
+    revealed=true;
+    buildCompat();
+    const eigDeg=Math.atan2(EIG.v1[1],EIG.v1[0])*180/Math.PI;
+    let d=((eigDeg%180)+180)%180;
+    document.getElementById('v6ang').value=Math.round(d);
+    const st=document.getElementById('v6stats');
+    st.style.display='';
+    st.innerHTML=
+      `<b>Spread matrix C</b> = [[${fmtN(cA,2)}, ${fmtN(cB,2)}], [${fmtN(cB,2)}, ${fmtN(cD,2)}]]<br>`+
+      `Dominant eigenvector: (${fmtN(EIG.v1[0],3)}, ${fmtN(EIG.v1[1],3)}) &nbsp;|&nbsp; `+
+      `λ₁ = <b>${fmtN(EIG.l1,2)}</b>, λ₂ = <b>${fmtN(EIG.l2,2)}</b><br>`+
+      `Spread captured: <b>${fmtN(EIG.l1/totalVar*100,1)}%</b>`;
+    v6draw();
+  };
+
+  function v6reset(){
+    revealed=false;selFish=null;compatOf=null;
+    document.getElementById('v6ang').value=45;
+    document.getElementById('v6stats').style.display='none';
+    document.getElementById('v6cbox').style.display='none';
+    v6draw();
+  };
+
+  /* click/tap to select fish */
+  svg.addEventListener('pointerdown',e=>{
+    if(!revealed)return;
+    const r=svg.getBoundingClientRect();
+    const ex=(e.clientX-r.left)*(SW/r.width),ey=(e.clientY-r.top)*(SH/r.height);
+    let best=-1,bd=18;
+    fish.forEach((f,i)=>{const d=Math.hypot(PX(f[0])-ex,PY(f[1])-ey);if(d<bd){bd=d;best=i;}});
+    if(best>=0){selFish=best;showCompat();}
+    else{selFish=null;document.getElementById('v6cbox').style.display='none';}
+    draw();
+  });
+
+  function showCompat(){
+    if(selFish===null||!compatOf)return;
+    const f=fish[selFish],cf=fish[compatOf[selFish]];
+    const sc=score(f),pp=Math.abs(perp(f));
+    const cb=document.getElementById('v6cbox');
+    cb.style.display='';
+    cb.innerHTML=
+      `Selected fish: L=${fmtN(f[0],1)} cm, W=${fmtN(f[1],1)} — size score <b>${fmtN(sc,2)}</b>, unusualness ${fmtN(pp,2)}<br>`+
+      `Most compatible: L=${fmtN(cf[0],1)} cm, W=${fmtN(cf[1],1)} — same size archetype (score ${fmtN(score(cf),2)})`;
+  }
+
+  function draw(){
+    const deg=getAngle(),c=cl(); let h='';
+    h+=`<defs><clipPath id="v6cp"><rect x="${ML}" y="${MT}" width="${PW}" height="${PH}"/></clipPath></defs>`;
+    /* axes box */
+    h+=`<rect x="${ML}" y="${MT}" width="${PW}" height="${PH}" fill="none" stroke="${c.br}" stroke-width=".8"/>`;
+    /* grid */
+    for(let L=Math.ceil(Lmn/5)*5;L<=Lmx;L+=5){
+      if(L<=Lmn||L>=Lmx)continue;
+      h+=`<line x1="${PX(L)}" y1="${MT}" x2="${PX(L)}" y2="${MT+PH}" stroke="${c.grid}" stroke-width=".5"/>`;
+      h+=`<text x="${PX(L)}" y="${MT+PH+14}" text-anchor="middle" font-size="11" fill="${c.tx3}" font-family="sans-serif">${L}</text>`;
+    }
+    for(let W=Math.ceil(Wmn/2)*2;W<=Wmx;W+=2){
+      if(W<=Wmn||W>=Wmx)continue;
+      h+=`<line x1="${ML}" y1="${PY(W)}" x2="${ML+PW}" y2="${PY(W)}" stroke="${c.grid}" stroke-width=".5"/>`;
+      h+=`<text x="${ML-5}" y="${PY(W)+4}" text-anchor="end" font-size="11" fill="${c.tx3}" font-family="sans-serif">${W}</text>`;
+    }
+    /* axis labels */
+    h+=`<text x="${ML+PW/2}" y="${SH-4}" text-anchor="middle" font-size="12" fill="${c.tx2}" font-family="sans-serif">length (cm)</text>`;
+    h+=`<text x="13" y="${MT+PH/2}" text-anchor="middle" font-size="12" fill="${c.tx2}" font-family="sans-serif" transform="rotate(-90 13 ${MT+PH/2})">weight</text>`;
+    /* axis line */
+    const tr=deg*Math.PI/180,ext=Math.max(PW,PH)*1.6;
+    h+=`<line x1="${PX(mL-ext*Math.cos(tr))}" y1="${PY(mW-ext*Math.sin(tr))}" `+
+       `x2="${PX(mL+ext*Math.cos(tr))}" y2="${PY(mW+ext*Math.sin(tr))}" `+
+       `stroke="${revealed?c.a3:c.a1}" stroke-width="${revealed?2.8:1.8}" `+
+       `stroke-dasharray="${revealed?'none':'7 4'}" clip-path="url(#v6cp)"/>`;
+    /* projection lines for selected fish */
+    if(selFish!==null&&revealed&&compatOf){
+      const sf=fish[selFish],sc2=score(sf);
+      const pjL=mL+sc2*EIG.v1[0],pjW=mW+sc2*EIG.v1[1];
+      h+=`<line x1="${PX(sf[0])}" y1="${PY(sf[1])}" x2="${PX(pjL)}" y2="${PY(pjW)}" stroke="${c.a4}" stroke-width="1.4" stroke-dasharray="3 3" clip-path="url(#v6cp)"/>`;
+      h+=`<circle cx="${PX(pjL)}" cy="${PY(pjW)}" r="4" fill="${c.a4}"/>`;
+      const ci=compatOf[selFish],cf=fish[ci],sc3=score(cf);
+      const cpL=mL+sc3*EIG.v1[0],cpW=mW+sc3*EIG.v1[1];
+      h+=`<line x1="${PX(cf[0])}" y1="${PY(cf[1])}" x2="${PX(cpL)}" y2="${PY(cpW)}" stroke="${c.a3}" stroke-width="1.4" stroke-dasharray="3 3" clip-path="url(#v6cp)"/>`;
+    }
+    /* fish glyphs */
+    fish.forEach((f,i)=>{
+      const fx=PX(f[0]),fy=PY(f[1]),r=5.5;
+      const isSel=i===selFish,isComp=selFish!==null&&compatOf&&compatOf[selFish]===i;
+      const col=isComp?c.a3:c.a3;
+      const op=isSel||isComp?1:.62;
+      const sw=isSel?2.5:isComp?2:0;
+      const sc4=isSel?c.a1:isComp?c.a3:'none';
+      /* body ellipse (fish faces right) */
+      h+=`<ellipse cx="${fx}" cy="${fy}" rx="${r*1.55}" ry="${r*.72}" fill="${col}" opacity="${op}" stroke="${sc4}" stroke-width="${sw}"/>`;
+      /* tail on the left */
+      h+=`<polygon points="${fx-r*1.55},${fy-r*.85} ${fx-r*1.55},${fy+r*.85} ${fx-r*2.4},${fy}" fill="${col}" opacity="${op}"/>`;
+    });
+    svg.innerHTML=h;
+  }
+
+  window.v6draw=v6draw;
+  window.v6reveal=v6reveal;
+  window.v6reset=v6reset;
+    v6draw();
+})();
+</script>
+</body>
+</html>
